@@ -1,0 +1,64 @@
+# Server properties
+server:
+  port: 8091
+
+# Information for the info endpoint
+info:
+  app:
+    environment: DEV
+    name: Auth Service
+    description: Auth Service Local Instance
+
+# Spring application properties
+spring:
+  application:
+    name: auth
+  profiles:
+    active: dev
+  config:
+    import:
+      - optional:configserver:${CONFIG_SERVER_URL}
+      - optional:file:./env.properties
+  datasource:
+    url: h2:mem:authdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+
+# Eureka configuration
+eureka:
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_DEFAULT_ZONE}
+  instance:
+    preferIpAddress: true
+
+# Management properties
+endpoints:
+  shutdown:
+    enabled: true
+management:
+  info:
+    env:
+      enabled: true
+  endpoint:
+    shutdown:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: info, health, refresh, shutdown
+
+# Logging properties
+logging:
+  level:
+    root: ERROR
+    com.proactivetechie: INFO
+    org.springframework: INFO
+    org.hibernate: INFO
