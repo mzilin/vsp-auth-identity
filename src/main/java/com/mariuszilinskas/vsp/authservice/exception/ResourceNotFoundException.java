@@ -2,7 +2,8 @@ package com.mariuszilinskas.vsp.authservice.exception;
 
 public class ResourceNotFoundException extends RuntimeException {
 
-    public ResourceNotFoundException(Class<?> entity, String type, Object value) {
-        super(entity.getSimpleName() + " with " + type + " '" + value + "' doesn't exist");
+    public <T> ResourceNotFoundException(Class<T> entity, String identifierType, Object identifierValue) {
+        super(String.format("No %s found with %s = '%s'. Please check the %s and try again.",
+                entity.getSimpleName(), identifierType, identifierValue, identifierType));
     }
 }
