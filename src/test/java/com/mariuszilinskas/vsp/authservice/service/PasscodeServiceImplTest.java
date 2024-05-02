@@ -5,7 +5,6 @@ import com.mariuszilinskas.vsp.authservice.dto.VerifyPasscodeRequest;
 import com.mariuszilinskas.vsp.authservice.exception.EmailVerificationException;
 import com.mariuszilinskas.vsp.authservice.exception.PasscodeExpiredException;
 import com.mariuszilinskas.vsp.authservice.exception.PasscodeValidationException;
-import com.mariuszilinskas.vsp.authservice.model.HashedPassword;
 import com.mariuszilinskas.vsp.authservice.model.Passcode;
 import com.mariuszilinskas.vsp.authservice.repository.PasscodeRepository;
 import feign.FeignException;
@@ -44,14 +43,12 @@ public class PasscodeServiceImplTest {
 
     private FeignException feignException;
     private final UUID userId = UUID.randomUUID();
-    private final HashedPassword hashedPassword = new HashedPassword(userId);
     private final Passcode passcode = new Passcode(userId);
 
     // ------------------------------------
 
     @BeforeEach
     void setUp() {
-        hashedPassword.setPasswordHash("encodedPassword");
         passcode.setPasscode("123456");
         passcode.setExpiryDate(Instant.now().plusSeconds(10));
 
