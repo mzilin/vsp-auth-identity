@@ -17,4 +17,6 @@ public interface PasscodeRepository extends JpaRepository<Passcode, UUID> {
 
     Optional<Passcode> findByUserId(UUID userId);
 
+    void deleteByUserId(UUID userId);
+
 }
