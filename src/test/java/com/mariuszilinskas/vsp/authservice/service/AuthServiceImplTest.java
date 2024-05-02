@@ -155,7 +155,11 @@ public class AuthServiceImplTest {
 
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
         when(userFeignClient.verifyUserEmail(userId)).thenReturn(null);
-        doNothing().when(passcodeRepository).deleteByUserId(userId);
+
+        doAnswer(invocation -> {
+            when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
+            return null;
+        }).when(passcodeRepository).deleteByUserId(userId);
 
         // Act
         authService.verifyPasscode(userId, request);
@@ -164,6 +168,8 @@ public class AuthServiceImplTest {
         verify(passcodeRepository, times(1)).findByUserId(userId);
         verify(userFeignClient, times(1)).verifyUserEmail(userId);
         verify(passcodeRepository, times(1)).deleteByUserId(userId);
+
+        assertFalse(passcodeRepository.findByUserId(userId).isPresent());
     }
 
     @Test
@@ -218,4 +224,33 @@ public class AuthServiceImplTest {
 
     // ------------------------------------
 
+    @Test
+    void resetPasscode_Success() {
+        // Arrange
+        String newPasscode = "abc123";
+        passcode.setPasscode(newPasscode);
+        ArgumentCaptor<Passcode> passcodeCaptor = ArgumentCaptor.forClass(Passcode.class);
+
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+        when(tokenGenerationService.generatePasscode()).thenReturn(newPasscode);
+        when(passcodeRepository.save(passcodeCaptor.capture())).thenReturn(passcode);
+
+        // Act
+        authService.resetPasscode(userId);
+
+        // Assert
+        verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(passcodeRepository, times(1)).save(passcodeCaptor.capture());
+
+        Passcode savedPasscode = passcodeCaptor.getValue();
+        assertEquals(userId, savedPasscode.getUserId());
+        assertEquals(newPasscode, savedPasscode.getPasscode());
+    }
+
+    // ------------------------------------
+
+//    @Test
+//    void deletePasscode_Success() {
+//
+//    }
 }
