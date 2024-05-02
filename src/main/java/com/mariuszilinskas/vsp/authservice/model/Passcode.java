@@ -3,6 +3,7 @@ package com.mariuszilinskas.vsp.authservice.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 @Table(name = "passcodes")
 public class Passcode {
 
@@ -33,4 +35,7 @@ public class Passcode {
     @Column(name = "expiry_date", nullable = false)
     private Instant expiryDate;
 
+    public Passcode(UUID userId) {
+        this.userId = userId;
+    }
 }

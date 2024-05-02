@@ -3,6 +3,7 @@ package com.mariuszilinskas.vsp.authservice.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.ZonedDateTime;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 @Table(name = "hashed_passwords")
 public class HashedPassword {
 
@@ -36,4 +38,7 @@ public class HashedPassword {
     @Column(name = "last_updated", nullable = false)
     private ZonedDateTime lastUpdated = ZonedDateTime.now();
 
+    public HashedPassword(UUID userId) {
+        this.userId = userId;
+    }
 }
