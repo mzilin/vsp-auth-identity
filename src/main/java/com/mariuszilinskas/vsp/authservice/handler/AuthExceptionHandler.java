@@ -56,7 +56,12 @@ public class AuthExceptionHandler {
     // --------------------- Specific -----------------------------
 
     @ExceptionHandler(PasscodeValidationException.class)
-    public ResponseEntity<ErrorResponse> handlePinCodeDoesntMatchException(PasscodeValidationException ex) {
+    public ResponseEntity<ErrorResponse> handlePassodeDoesntMatchException(PasscodeValidationException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PasscodeExpiredException.class)
+    public ResponseEntity<ErrorResponse> handlePasscodeDoesntMatchException(PasscodeExpiredException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
