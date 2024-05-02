@@ -8,5 +8,6 @@ public abstract class AuthUtils {
 
     public static final String TIMESTAMP_FORMAT = "yyyy-MM-dd hh:mm:ss";
 
-    public static final long PIN_CODE_VALID_MINUTES = 15;
+    public static final long PIN_CODE_VALID_MILLIS = 15 * 60 * 1000; // 15 minutes
+
 }
