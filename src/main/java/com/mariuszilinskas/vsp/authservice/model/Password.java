@@ -18,8 +18,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "hashed_passwords")
-public class HashedPassword {
+@Table(name = "passwords")
+public class Password {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -38,7 +38,7 @@ public class HashedPassword {
     @Column(name = "last_updated", nullable = false)
     private ZonedDateTime lastUpdated = ZonedDateTime.now();
 
-    public HashedPassword(UUID userId) {
+    public Password(UUID userId) {
         this.userId = userId;
     }
 }
