@@ -55,13 +55,18 @@ public class AuthExceptionHandler {
 
     // --------------------- Specific -----------------------------
 
+    @ExceptionHandler(EmailVerificationException.class)
+    public ResponseEntity<ErrorResponse> handleEmailVerificationException(EmailVerificationException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(PasscodeValidationException.class)
-    public ResponseEntity<ErrorResponse> handlePassodeDoesntMatchException(PasscodeValidationException ex) {
+    public ResponseEntity<ErrorResponse> handlePasscodeValidationException(PasscodeValidationException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(PasscodeExpiredException.class)
-    public ResponseEntity<ErrorResponse> handlePasscodeDoesntMatchException(PasscodeExpiredException ex) {
+    public ResponseEntity<ErrorResponse> handlePasscodeExpiredException(PasscodeExpiredException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
