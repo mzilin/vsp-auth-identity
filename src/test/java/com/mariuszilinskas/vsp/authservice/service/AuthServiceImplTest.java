@@ -249,8 +249,35 @@ public class AuthServiceImplTest {
 
     // ------------------------------------
 
-//    @Test
-//    void deletePasscode_Success() {
-//
-//    }
+    @Test
+    void deletePasscode_Success() {
+        // Arrange
+        doAnswer(invocation -> {
+            when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
+            return null;
+        }).when(passcodeRepository).deleteByUserId(userId);
+
+        // Act
+        authService.deletePasscode(userId);
+
+        // Assert
+        verify(passcodeRepository, times(1)).deleteByUserId(userId);
+
+        assertFalse(passcodeRepository.findByUserId(userId).isPresent());
+    }
+
+    @Test
+    void deletePasscode_NonExistingPasscode() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
+
+        // Act
+        authService.deletePasscode(userId);
+
+        // Assert
+        verify(passcodeRepository, times(1)).deleteByUserId(userId);
+
+        assertFalse(passcodeRepository.findByUserId(userId).isPresent());
+    }
 }
