@@ -16,6 +16,8 @@ import java.util.UUID;
 @Repository
 public interface ResetTokenRepository extends JpaRepository<ResetToken, UUID> {
 
+    Optional<ResetToken> findByToken(String token);
+
     Optional<ResetToken> findByUserId(UUID userId);
 
     void deleteByUserId(UUID userId);
