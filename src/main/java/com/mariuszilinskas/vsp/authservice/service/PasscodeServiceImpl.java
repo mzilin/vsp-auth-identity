@@ -84,7 +84,7 @@ public class PasscodeServiceImpl implements PasscodeService {
     private String createPasscode(UUID userId) {
         Passcode passcode = findOrCreatePasscode(userId);
         passcode.setPasscode(tokenGenerationService.generatePasscode());
-        passcode.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINUTES));
+        passcode.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINUTES_IN_MILLIS));
         passcodeRepository.save(passcode);
         return passcode.getPasscode();
     }

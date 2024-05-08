@@ -36,7 +36,7 @@ public class RefreshTokenServiceImplTest {
     void setup() {
         refreshToken.setId(tokenId);
         refreshToken.setUserId(userId);
-        refreshToken.setExpiryDate(Instant.now().plusMillis(AuthUtils.REFRESH_TOKEN_EXPIRATION));
+        refreshToken.setExpiryDate(Instant.now().plusMillis(AuthUtils.REFRESH_TOKEN_EXPIRATION_MILLIS));
     }
 
     // ------------------------------------

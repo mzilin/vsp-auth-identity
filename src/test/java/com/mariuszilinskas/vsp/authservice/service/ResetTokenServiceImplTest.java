@@ -42,7 +42,7 @@ public class ResetTokenServiceImplTest {
     @BeforeEach
     void setUp() {
         resetToken.setToken(token);
-        resetToken.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINUTES));
+        resetToken.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINUTES_IN_MILLIS));
     }
 
     // ------------------------------------

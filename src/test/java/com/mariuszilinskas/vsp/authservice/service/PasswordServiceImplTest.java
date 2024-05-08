@@ -60,7 +60,7 @@ public class PasswordServiceImplTest {
     void setUp() {
         password.setPasswordHash("encodedPassword");
         resetToken.setToken(token);
-        resetToken.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINUTES));
+        resetToken.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINUTES_IN_MILLIS));
 
         // Empty string for URL as a placeholder
         Request feignRequest = Request.create(

@@ -30,7 +30,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Transactional
     public void createNewRefreshToken(UUID tokenId, UUID userId) {
         RefreshToken refreshToken = findOrCreateRefreshToken(tokenId, userId);
-        refreshToken.setExpiryDate(Instant.now().plusMillis(AuthUtils.REFRESH_TOKEN_EXPIRATION));
+        refreshToken.setExpiryDate(Instant.now().plusMillis(AuthUtils.REFRESH_TOKEN_EXPIRATION_MILLIS));
         refreshTokenRepository.save(refreshToken);
     }
 
