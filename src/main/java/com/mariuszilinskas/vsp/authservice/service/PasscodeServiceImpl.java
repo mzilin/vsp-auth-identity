@@ -69,7 +69,7 @@ public class PasscodeServiceImpl implements PasscodeService {
     @Override
     @Transactional
     public void resetPasscode(UUID userId) {
-        logger.info("Resending Passcode for User [userId: '{}']", userId);
+        logger.info("Resetting Passcode for User [userId: '{}']", userId);
 
         String passcode = createPasscode(userId);
 
