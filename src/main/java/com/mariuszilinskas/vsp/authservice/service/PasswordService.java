@@ -11,6 +11,6 @@ public interface PasswordService {
 
     void resetPassword(ResetPasswordRequest request);
 
-    void deletePassword(UUID userId);
+    void deleteUserPasswords(UUID userId);
 
 }

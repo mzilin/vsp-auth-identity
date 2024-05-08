@@ -90,7 +90,7 @@ public class PasswordServiceImpl implements PasswordService {
 
     @Override
     @Transactional
-    public void deletePassword(UUID userId) {
+    public void deleteUserPasswords(UUID userId) {
         logger.info("Deleting Passwords for User [userId: '{}']", userId);
         passwordRepository.deleteByUserId(userId);
     }

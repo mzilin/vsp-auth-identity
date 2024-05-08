@@ -193,13 +193,13 @@ public class PasswordServiceImplTest {
     // ------------------------------------
 
     @Test
-    void testDeletePassword_Success() {
+    void testDeleteUserPasswords_Success() {
         // Arrange
         doNothing().when(passwordRepository).deleteByUserId(userId);
         when(passwordRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // Act
-        passwordService.deletePassword(userId);
+        passwordService.deleteUserPasswords(userId);
 
         // Assert
         verify(passwordRepository, times(1)).deleteByUserId(userId);
@@ -207,14 +207,14 @@ public class PasswordServiceImplTest {
     }
 
     @Test
-    void testDeletePassword_NonExistingPassword() {
+    void testDeleteUserPasswords_NonExistingPassword() {
         // Arrange
         UUID nonExistentUserId = UUID.randomUUID();
         doNothing().when(passwordRepository).deleteByUserId(nonExistentUserId);
         when(passwordRepository.findByUserId(nonExistentUserId)).thenReturn(Optional.empty());
 
         // Act
-        passwordService.deletePassword(nonExistentUserId);
+        passwordService.deleteUserPasswords(nonExistentUserId);
 
         // Assert
         verify(passwordRepository, times(1)).deleteByUserId(nonExistentUserId);
