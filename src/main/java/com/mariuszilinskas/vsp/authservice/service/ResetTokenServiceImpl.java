@@ -48,15 +48,15 @@ public class ResetTokenServiceImpl implements ResetTokenService {
 
     @Override
     @Transactional
-    public void deleteResetToken(UUID userId) {
+    public void deleteUserResetTokens(UUID userId) {
         logger.info("Deleting Reset Tokens for User [userId: '{}']", userId);
         resetTokenRepository.deleteByUserId(userId);
     }
 
     @Override
     @Transactional
-    public void deleteAllExpiredResetTokens() {
-        logger.info("Deleting All Expired Reset Tokens");
+    public void deleteExpiredResetTokens() {
+        logger.info("Deleting Expired Reset Tokens");
         resetTokenRepository.deleteAllByExpiryDateBefore(Instant.now());
     }
 

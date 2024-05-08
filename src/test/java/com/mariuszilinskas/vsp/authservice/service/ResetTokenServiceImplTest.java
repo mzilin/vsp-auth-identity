@@ -132,7 +132,7 @@ public class ResetTokenServiceImplTest {
         when(resetTokenRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // Act
-        resetTokenService.deleteResetToken(userId);
+        resetTokenService.deleteUserResetTokens(userId);
 
         // Assert
         verify(resetTokenRepository, times(1)).deleteByUserId(userId);
@@ -147,7 +147,7 @@ public class ResetTokenServiceImplTest {
         when(resetTokenRepository.findByUserId(nonExistentUserId)).thenReturn(Optional.empty());
 
         // Act
-        resetTokenService.deleteResetToken(nonExistentUserId);
+        resetTokenService.deleteUserResetTokens(nonExistentUserId);
 
         // Assert
         verify(resetTokenRepository, times(1)).deleteByUserId(nonExistentUserId);
@@ -157,9 +157,9 @@ public class ResetTokenServiceImplTest {
     // ------------------------------------
 
     @Test
-    void testDeleteAllExpiredResetTokens_Success() {
+    void testDeleteExpiredResetTokens_Success() {
         // Act
-        resetTokenService.deleteAllExpiredResetTokens();
+        resetTokenService.deleteExpiredResetTokens();
 
         // Assert
         verify(resetTokenRepository, times(1)).deleteAllByExpiryDateBefore(any(Instant.class));

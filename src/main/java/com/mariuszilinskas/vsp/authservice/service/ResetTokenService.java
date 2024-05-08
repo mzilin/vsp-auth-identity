@@ -10,8 +10,8 @@ public interface ResetTokenService {
 
     ResetToken findResetToken(String token);
 
-    void deleteResetToken(UUID userid);
+    void deleteUserResetTokens(UUID userid);
 
-    void deleteAllExpiredResetTokens();
+    void deleteExpiredResetTokens();
 
 }
