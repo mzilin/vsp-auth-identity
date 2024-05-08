@@ -19,6 +19,11 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Service implementation for managing User Passcodes.
+ *
+ * @author Marius Zilinskas
+ */
 @Service
 @RequiredArgsConstructor
 public class PasscodeServiceImpl implements PasscodeService {

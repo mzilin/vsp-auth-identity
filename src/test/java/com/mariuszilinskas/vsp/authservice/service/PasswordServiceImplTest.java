@@ -32,6 +32,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PasswordServiceImplTest {
+
     @Mock
     private ResetTokenServiceImpl resetTokenService;
 

@@ -13,6 +13,11 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Service implementation for managing User Password Reset Tokens.
+ *
+ * @author Marius Zilinskas
+ */
 @Service
 @RequiredArgsConstructor
 public class ResetTokenServiceImpl implements ResetTokenService {

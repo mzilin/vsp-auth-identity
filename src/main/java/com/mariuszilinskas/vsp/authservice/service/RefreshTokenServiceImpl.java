@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Service implementation for managing Refresh Tokens.
+ * Service implementation for managing User Refresh Tokens.
  *
  * @author Marius Zilinskas
  */
