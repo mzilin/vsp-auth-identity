@@ -11,7 +11,7 @@ import java.util.UUID;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class UserAuthDataServiceImplTest {
+public class DataDeletionServiceImplTest {
 
     @Mock
     private PasscodeService passcodeService;
@@ -26,7 +26,7 @@ public class UserAuthDataServiceImplTest {
     private RefreshTokenService refreshTokenService;
 
     @InjectMocks
-    UserAuthDataServiceImpl userAuthDataService;
+    DataDeletionServiceImpl userAuthDataService;
 
     private final UUID userId = UUID.randomUUID();
 

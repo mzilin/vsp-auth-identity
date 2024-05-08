@@ -2,7 +2,7 @@ package com.mariuszilinskas.vsp.authservice.service;
 
 import java.util.UUID;
 
-public interface UserAuthDataService {
+public interface DataDeletionService {
 
     void deleteUserAuthData(UUID userId);
 

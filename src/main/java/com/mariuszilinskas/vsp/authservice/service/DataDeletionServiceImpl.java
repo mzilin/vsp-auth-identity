@@ -8,11 +8,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+/**
+ * Service implementation for managing User Auth Data deletion.
+ *
+ * @author Marius Zilinskas
+ */
 @Service
 @RequiredArgsConstructor
-public class UserAuthDataServiceImpl implements UserAuthDataService {
+public class DataDeletionServiceImpl implements DataDeletionService {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserAuthDataServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(DataDeletionServiceImpl.class);
 
     private final PasscodeService passcodeService;
     private final PasswordService passwordService;
