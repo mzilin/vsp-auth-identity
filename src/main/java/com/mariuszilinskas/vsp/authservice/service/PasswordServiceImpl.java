@@ -1,6 +1,7 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
+import com.mariuszilinskas.vsp.authservice.dto.CreateCredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.exception.*;
@@ -31,6 +32,13 @@ public class PasswordServiceImpl implements PasswordService {
 
     @Override
     @Transactional
+    public void createNewPassword(CreateCredentialsRequest request) {
+        logger.info("Creating Password for User [userId: '{}']", request.userId());
+        createEncryptedPassword(request.userId(), request.password());
+    }
+
+    @Override
+    @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
         logger.info("Setting Password Reset Token for User [email: '{}']", request.email());
 
@@ -56,7 +64,7 @@ public class PasswordServiceImpl implements PasswordService {
         logger.info("Resetting New Password for User [userId: '{}']", resetToken.getUserId());
 
         validateResetToken(resetToken, request.resetToken());
-        createEncryptedPassword(resetToken.getUserId(), request);
+        createEncryptedPassword(resetToken.getUserId(), request.password());
     }
 
     private void validateResetToken(ResetToken resetToken, String givenResetToken) {
@@ -73,19 +81,19 @@ public class PasswordServiceImpl implements PasswordService {
         return resetToken.getExpiryDate().isBefore(Instant.now());
     }
 
-    private void createEncryptedPassword(UUID userId, ResetPasswordRequest request) {
+    private void createEncryptedPassword(UUID userId, String newPassword) {
         Password password = findOrCreateHashedPassword(userId);
-        setHashedPassword(password, request.password());
-    }
-
-    private void setHashedPassword(Password password, String newPassword) {
-        password.setPasswordHash(bCryptPasswordEncoder.encode(newPassword));
-        passwordRepository.save(password);
+        setHashedPassword(password, newPassword);
     }
 
     private Password findOrCreateHashedPassword(UUID userId) {
         return passwordRepository.findByUserId(userId)
                 .orElse(new Password(userId));
+    }
+
+    private void setHashedPassword(Password password, String newPassword) {
+        password.setPasswordHash(bCryptPasswordEncoder.encode(newPassword));
+        passwordRepository.save(password);
     }
 
     @Override

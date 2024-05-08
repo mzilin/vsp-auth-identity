@@ -1,6 +1,7 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
+import com.mariuszilinskas.vsp.authservice.dto.CreateCredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.exception.*;
@@ -72,6 +73,32 @@ public class PasswordServiceImplTest {
         feignException = new FeignException.NotFound(
                 "Not found", feignRequest, null, Collections.emptyMap()
         );
+    }
+
+    // ------------------------------------
+
+    @Test
+    void testCreateNewPassword_Success() {
+        // Arrange
+        String email = "user@email.com";
+        String newPassword = "Password1";
+        ArgumentCaptor<Password> captor = ArgumentCaptor.forClass(Password.class);
+        CreateCredentialsRequest request = new CreateCredentialsRequest(userId, email, newPassword);
+
+        when(passwordRepository.findByUserId(userId)).thenReturn(Optional.empty());
+        when(bCryptPasswordEncoder.encode(newPassword)).thenReturn(password.getPasswordHash());
+        when(passwordRepository.save(captor.capture())).thenReturn(password);
+
+        // Act
+        passwordService.createNewPassword(request);
+
+        // Assert
+        verify(passwordRepository, times(1)).findByUserId(userId);
+        verify(bCryptPasswordEncoder, times(1)).encode(newPassword);
+        verify(passwordRepository, times(1)).save(captor.capture());
+
+        Password savedPassword = captor.getValue();
+        assertEquals(password.getPasswordHash(), savedPassword.getPasswordHash());
     }
 
     // ------------------------------------
