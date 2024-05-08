@@ -17,7 +17,7 @@ public class UserAuthDataServiceImpl implements UserAuthDataService {
     private final PasscodeService passcodeService;
     private final PasswordService passwordService;
     private final ResetTokenService resetTokenService;
-//    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     @Transactional
@@ -27,8 +27,7 @@ public class UserAuthDataServiceImpl implements UserAuthDataService {
         passcodeService.deleteUserPasscodes(userId);
         passwordService.deleteUserPasswords(userId);
         resetTokenService.deleteUserResetTokens(userId);
-
-        // TODO: add refresh token service
+        refreshTokenService.deleteUserRefreshTokens(userId);
     }
 
 }
