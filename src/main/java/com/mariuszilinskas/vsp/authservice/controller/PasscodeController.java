@@ -22,7 +22,7 @@ public class PasscodeController {
 
     private final PasscodeService passcodeService;
 
-    @PutMapping("/{userId}/verify")
+    @PutMapping("/{userId}/verify-passcode")
     public ResponseEntity<Void> verifyPasscode(
             @PathVariable UUID userId,
             @Valid @RequestBody VerifyPasscodeRequest request
@@ -31,7 +31,7 @@ public class PasscodeController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("/{userId}/reset")
+    @PutMapping("/{userId}/reset-passcode")
     public ResponseEntity<Void> resetPasscode(
             @PathVariable UUID userId
     ) {
