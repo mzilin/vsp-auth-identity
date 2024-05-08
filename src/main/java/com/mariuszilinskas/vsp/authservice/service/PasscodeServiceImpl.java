@@ -44,7 +44,7 @@ public class PasscodeServiceImpl implements PasscodeService {
         }
 
         verifyUserEmail(userId);
-        deletePasscode(userId);
+        deleteUserPasscodes(userId);
 
         // TODO: Send Welcome Email + TEST
     }
@@ -94,9 +94,17 @@ public class PasscodeServiceImpl implements PasscodeService {
                 .orElseThrow(() -> new ResourceNotFoundException(Passcode.class, "userId", userId));
     }
 
+    @Override
     @Transactional
-    public void deletePasscode(UUID userId) {
+    public void deleteUserPasscodes(UUID userId) {
         logger.info("Deleting Passcodes for User [userId: '{}']", userId);
         passcodeRepository.deleteByUserId(userId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteExpiredPasscodes() {
+        logger.info("Deleting Expired Passcodes");
+        passcodeRepository.deleteAllByExpiryDateBefore(Instant.now());
     }
 }

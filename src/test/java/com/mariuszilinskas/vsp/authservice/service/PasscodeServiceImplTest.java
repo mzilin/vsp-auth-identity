@@ -170,15 +170,13 @@ public class PasscodeServiceImplTest {
     // ------------------------------------
 
     @Test
-    void testDeletePasscode_Success() {
+    void testDeleteUserPasscodes_Success() {
         // Arrange
-        doAnswer(invocation -> {
-            when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
-            return null;
-        }).when(passcodeRepository).deleteByUserId(userId);
+        doNothing().when(passcodeRepository).deleteByUserId(userId);
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // Act
-        passcodeService.deletePasscode(userId);
+        passcodeService.deleteUserPasscodes(userId);
 
         // Assert
         verify(passcodeRepository, times(1)).deleteByUserId(userId);
@@ -187,17 +185,29 @@ public class PasscodeServiceImplTest {
     }
 
     @Test
-    void testDeletePasscode_NonExistingPasscode() {
+    void testDeleteUserPasscodes_NonExistingPasscode() {
         // Arrange
         UUID userId = UUID.randomUUID();
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // Act
-        passcodeService.deletePasscode(userId);
+        passcodeService.deleteUserPasscodes(userId);
 
         // Assert
         verify(passcodeRepository, times(1)).deleteByUserId(userId);
 
         assertFalse(passcodeRepository.findByUserId(userId).isPresent());
     }
+
+    // ------------------------------------
+
+    @Test
+    void testDeleteExpiredPasscodes_Success() {
+        // Act
+        passcodeService.deleteExpiredPasscodes();
+
+        // Assert
+        verify(passcodeRepository, times(1)).deleteAllByExpiryDateBefore(any(Instant.class));
+    }
+
 }

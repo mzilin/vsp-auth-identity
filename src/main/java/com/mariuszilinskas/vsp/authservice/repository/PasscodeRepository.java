@@ -4,6 +4,7 @@ import com.mariuszilinskas.vsp.authservice.model.Passcode;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,4 +20,5 @@ public interface PasscodeRepository extends JpaRepository<Passcode, UUID> {
 
     void deleteByUserId(UUID userId);
 
+    void deleteAllByExpiryDateBefore(Instant expiryDate);
 }

@@ -10,4 +10,7 @@ public interface PasscodeService {
 
     void resetPasscode(UUID userId);
 
+    void deleteUserPasscodes(UUID userId);
+
+    void deleteExpiredPasscodes();
 }
