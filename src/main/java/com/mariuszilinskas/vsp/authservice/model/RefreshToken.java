@@ -2,6 +2,7 @@ package com.mariuszilinskas.vsp.authservice.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 @Table(name = "refresh_tokens")
 public class RefreshToken {
 
@@ -27,4 +29,9 @@ public class RefreshToken {
 
     @Column(name = "expiry_date", nullable = false)
     private Instant expiryDate;
+
+    public RefreshToken(UUID tokenId, UUID userId) {
+        this.id = tokenId;
+        this.userId = userId;
+    }
 }
