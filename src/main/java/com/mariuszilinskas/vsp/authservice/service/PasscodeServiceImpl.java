@@ -79,7 +79,7 @@ public class PasscodeServiceImpl implements PasscodeService {
     private String createPasscode(UUID userId) {
         Passcode passcode = findOrCreatePasscode(userId);
         passcode.setPasscode(tokenGenerationService.generatePasscode());
-        passcode.setExpiryDate(Instant.now().plusMillis(AuthUtils.PIN_CODE_VALID_MILLIS));
+        passcode.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINS_IN_MILLIS));
         passcodeRepository.save(passcode);
         return passcode.getPasscode();
     }
@@ -96,7 +96,7 @@ public class PasscodeServiceImpl implements PasscodeService {
 
     @Transactional
     public void deletePasscode(UUID userId) {
-        logger.info("Deleting Passcode for User [userId: '{}']", userId);
+        logger.info("Deleting Passcodes for User [userId: '{}']", userId);
         passcodeRepository.deleteByUserId(userId);
     }
 }

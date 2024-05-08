@@ -69,7 +69,7 @@ public class PasscodeServiceImplTest {
     // ------------------------------------
 
     @Test
-    void verifyPasscode_Success() {
+    void testVerifyPasscode_Success() {
         // Arrange
         VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
 
@@ -93,7 +93,7 @@ public class PasscodeServiceImplTest {
     }
 
     @Test
-    void verifyPasscode_ExpiredPasscode() {
+    void testVerifyPasscode_ExpiredPasscode() {
         // Arrange
         passcode.setExpiryDate(Instant.now().minusSeconds(10));
         VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
@@ -110,7 +110,7 @@ public class PasscodeServiceImplTest {
     }
 
     @Test
-    void verifyPasscode_IncorrectPasscode() {
+    void testVerifyPasscode_IncorrectPasscode() {
         // Arrange
         VerifyPasscodeRequest request = new VerifyPasscodeRequest("wrong1");
 
@@ -126,12 +126,12 @@ public class PasscodeServiceImplTest {
     }
 
     @Test
-    void verifyPasscode_FailsToVerifyEmail() {
+    void testVerifyPasscode_FailsToVerifyEmail() {
         // Arrange
         VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
 
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
-        doThrow(feignException).when(userFeignClient).verifyUserEmail(any(UUID.class));
+        doThrow(feignException).when(userFeignClient).verifyUserEmail(userId);
 
         // Act & Assert
         assertThrows(EmailVerificationException.class, () -> passcodeService.verifyPasscode(userId, request));
@@ -145,7 +145,7 @@ public class PasscodeServiceImplTest {
     // ------------------------------------
 
     @Test
-    void resetPasscode_Success() {
+    void testResetPasscode_Success() {
         // Arrange
         String newPasscode = "abc123";
         passcode.setPasscode(newPasscode);
@@ -170,7 +170,7 @@ public class PasscodeServiceImplTest {
     // ------------------------------------
 
     @Test
-    void deletePasscode_Success() {
+    void testDeletePasscode_Success() {
         // Arrange
         doAnswer(invocation -> {
             when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
@@ -187,7 +187,7 @@ public class PasscodeServiceImplTest {
     }
 
     @Test
-    void deletePasscode_NonExistingPasscode() {
+    void testDeletePasscode_NonExistingPasscode() {
         // Arrange
         UUID userId = UUID.randomUUID();
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
