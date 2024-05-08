@@ -28,7 +28,7 @@ public class ResetTokenServiceImpl implements ResetTokenService {
         logger.info("Creating Reset Token for User [userId: '{}']", userId);
         ResetToken resetToken = findOrCreateResetToken(userId);
         resetToken.setToken(tokenGenerationService.generateResetToken());
-        resetToken.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINS_IN_MILLIS));
+        resetToken.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINUTES));
         resetTokenRepository.save(resetToken);
         return resetToken.getToken();
     }
