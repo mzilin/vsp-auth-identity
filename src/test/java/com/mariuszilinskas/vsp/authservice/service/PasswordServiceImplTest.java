@@ -1,7 +1,7 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
-import com.mariuszilinskas.vsp.authservice.dto.CreateCredentialsRequest;
+import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.exception.*;
@@ -40,7 +40,7 @@ public class PasswordServiceImplTest {
     private UserFeignClient userFeignClient;
 
     @Mock
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Mock
     private PasswordRepository passwordRepository;
@@ -84,10 +84,10 @@ public class PasswordServiceImplTest {
         String email = "user@email.com";
         String newPassword = "Password1";
         ArgumentCaptor<Password> captor = ArgumentCaptor.forClass(Password.class);
-        CreateCredentialsRequest request = new CreateCredentialsRequest(userId, email, newPassword);
+        CredentialsRequest request = new CredentialsRequest(userId, newPassword);
 
         when(passwordRepository.findByUserId(userId)).thenReturn(Optional.empty());
-        when(bCryptPasswordEncoder.encode(newPassword)).thenReturn(password.getPasswordHash());
+        when(passwordEncoder.encode(newPassword)).thenReturn(password.getPasswordHash());
         when(passwordRepository.save(captor.capture())).thenReturn(password);
 
         // Act
@@ -95,7 +95,7 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(passwordRepository, times(1)).findByUserId(userId);
-        verify(bCryptPasswordEncoder, times(1)).encode(newPassword);
+        verify(passwordEncoder, times(1)).encode(newPassword);
         verify(passwordRepository, times(1)).save(captor.capture());
 
         Password savedPassword = captor.getValue();
@@ -150,7 +150,7 @@ public class PasswordServiceImplTest {
         ResetPasswordRequest request = new ResetPasswordRequest(newPassword, resetToken.getToken());
 
         when(resetTokenService.findResetToken(request.resetToken())).thenReturn(resetToken);
-        when(bCryptPasswordEncoder.encode(newPassword)).thenReturn(newPasswordHash);
+        when(passwordEncoder.encode(newPassword)).thenReturn(newPasswordHash);
         when(passwordRepository.save(captor.capture())).thenReturn(password);
 
         // Act
@@ -158,7 +158,7 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(resetTokenService, times(1)).findResetToken(resetToken.getToken());
-        verify(bCryptPasswordEncoder, times(1)).encode(newPassword);
+        verify(passwordEncoder, times(1)).encode(newPassword);
         verify(passwordRepository, times(1)).save(captor.capture());
 
         Password savedPassword = captor.getValue();
@@ -179,7 +179,7 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(resetTokenService, times(1)).findResetToken(resetToken.getToken());
-        verify(bCryptPasswordEncoder, never()).encode(newPassword);
+        verify(passwordEncoder, never()).encode(newPassword);
         verify(passwordRepository, never()).save(any(Password.class));
     }
 
@@ -197,7 +197,7 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(resetTokenService, times(1)).findResetToken(incorrectToken);
-        verify(bCryptPasswordEncoder, never()).encode(newPassword);
+        verify(passwordEncoder, never()).encode(newPassword);
         verify(passwordRepository, never()).save(any(Password.class));
     }
 
@@ -214,7 +214,7 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(resetTokenService, times(1)).findResetToken(resetToken.getToken());
-        verify(bCryptPasswordEncoder, never()).encode(newPassword);
+        verify(passwordEncoder, never()).encode(newPassword);
         verify(passwordRepository, never()).save(any(Password.class));
     }
 
