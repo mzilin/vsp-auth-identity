@@ -16,7 +16,7 @@ import java.util.UUID;
  * @author Marius Zilinskas
  */
 @RestController
-@RequestMapping("/auth/passcode")
+@RequestMapping("/passcode")
 @RequiredArgsConstructor
 public class PasscodeController {
 
