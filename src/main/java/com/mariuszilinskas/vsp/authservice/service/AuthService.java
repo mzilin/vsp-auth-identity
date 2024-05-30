@@ -1,9 +1,9 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
-import com.mariuszilinskas.vsp.authservice.dto.CreateCredentialsRequest;
+import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 
 public interface AuthService {
 
-    void createPasswordAndSetPasscode(CreateCredentialsRequest request);
+    void createPasswordAndSetPasscode(CredentialsRequest request);
 
 }

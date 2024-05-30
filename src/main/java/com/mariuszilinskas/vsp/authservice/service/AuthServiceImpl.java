@@ -1,6 +1,6 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
-import com.mariuszilinskas.vsp.authservice.dto.CreateCredentialsRequest;
+import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -23,7 +23,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void createPasswordAndSetPasscode(CreateCredentialsRequest request) {
+    public void createPasswordAndSetPasscode(CredentialsRequest request) {
         logger.info("Creating Credentials for User [userId: '{}']", request.userId());
 
         passwordService.createNewPassword(request);

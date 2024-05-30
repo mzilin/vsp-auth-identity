@@ -1,7 +1,7 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
-import com.mariuszilinskas.vsp.authservice.dto.CreateCredentialsRequest;
+import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.exception.*;
@@ -37,13 +37,13 @@ public class PasswordServiceImpl implements PasswordService {
 
     @Override
     @Transactional
-    public void createNewPassword(CreateCredentialsRequest request) {
+    public void createNewPassword(CredentialsRequest request) {
         logger.info("Creating Password for User [userId: '{}']", request.userId());
         createEncryptedPassword(request.userId(), request.password());
     }
 
     @Override
-    public void verifyPassword(CreateCredentialsRequest request) {
+    public void verifyPassword(CredentialsRequest request) {
         logger.info("Verifying Password for User [userId: '{}']", request.userId());
         Password storedPassword = getPasswordByUserId(request.userId());
         validatePassword(request.password(), storedPassword);
@@ -66,7 +66,7 @@ public class PasswordServiceImpl implements PasswordService {
         UUID userId = getUserIdByEmail(request.email());
         String token = resetTokenService.createResetToken(userId);
 
-        // TODO: Send Reset Password Email + TEST
+        // TODO: RabbitMQ - Send Reset Password Email + TEST
     }
 
     private UUID getUserIdByEmail(String email) {

@@ -24,7 +24,7 @@ public class PasswordController {
 
     @PostMapping("/verify")
     public ResponseEntity<Void> verifyPassword(
-            @Valid @RequestBody CreateCredentialsRequest request
+            @Valid @RequestBody CredentialsRequest request
     ){
         passwordService.verifyPassword(request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
