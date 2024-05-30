@@ -3,6 +3,11 @@ package com.mariuszilinskas.vsp.authservice.service;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service implementation for Token generations.
+ *
+ * @author Marius Zilinskas
+ */
 @Service
 public class TokenGenerationService {
 
