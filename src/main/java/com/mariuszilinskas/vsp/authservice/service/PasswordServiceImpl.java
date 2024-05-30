@@ -33,13 +33,29 @@ public class PasswordServiceImpl implements PasswordService {
     private final UserFeignClient userFeignClient;
     private final PasswordRepository passwordRepository;
     private final ResetTokenService resetTokenService;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void createNewPassword(CreateCredentialsRequest request) {
         logger.info("Creating Password for User [userId: '{}']", request.userId());
         createEncryptedPassword(request.userId(), request.password());
+    }
+
+    @Override
+    public void verifyPassword(CreateCredentialsRequest request) {
+        logger.info("Verifying Password for User [userId: '{}']", request.userId());
+        Password storedPassword = getPasswordByUserId(request.userId());
+        validatePassword(request.password(), storedPassword);
+    }
+
+    private Password getPasswordByUserId(UUID userId) {
+        return passwordRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(Password.class, "userId", userId));
+    }
+    private void validatePassword(String providedPassword, Password storedPassword) {
+        if (!passwordEncoder.matches(providedPassword, storedPassword.getPasswordHash()))
+            throw new PasswordValidationException();
     }
 
     @Override
@@ -87,17 +103,17 @@ public class PasswordServiceImpl implements PasswordService {
     }
 
     private void createEncryptedPassword(UUID userId, String newPassword) {
-        Password password = findOrCreateHashedPassword(userId);
+        Password password = getOrCreateHashedPassword(userId);
         setHashedPassword(password, newPassword);
     }
 
-    private Password findOrCreateHashedPassword(UUID userId) {
+    private Password getOrCreateHashedPassword(UUID userId) {
         return passwordRepository.findByUserId(userId)
                 .orElse(new Password(userId));
     }
 
     private void setHashedPassword(Password password, String newPassword) {
-        password.setPasswordHash(bCryptPasswordEncoder.encode(newPassword));
+        password.setPasswordHash(passwordEncoder.encode(newPassword));
         passwordRepository.save(password);
     }
 

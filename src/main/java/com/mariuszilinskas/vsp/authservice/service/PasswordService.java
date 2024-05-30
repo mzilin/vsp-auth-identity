@@ -10,6 +10,8 @@ public interface PasswordService {
 
     void createNewPassword(CreateCredentialsRequest request);
 
+    void verifyPassword(CreateCredentialsRequest request);
+
     void forgotPassword(ForgotPasswordRequest request);
 
     void resetPassword(ResetPasswordRequest request);
