@@ -1,11 +1,14 @@
 package com.mariuszilinskas.vsp.authservice.controller;
 
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
+import com.mariuszilinskas.vsp.authservice.dto.LoginRequest;
 import com.mariuszilinskas.vsp.authservice.service.AuthService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -29,9 +32,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Void> loginUser(
+    public ResponseEntity<Void> authenticateUser(
+            @Valid @RequestBody LoginRequest request,
+            @NonNull HttpServletResponse response
     ) {
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        authService.authenticateUser(request, response);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/token")
