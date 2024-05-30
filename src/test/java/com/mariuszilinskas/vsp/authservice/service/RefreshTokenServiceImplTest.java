@@ -53,8 +53,8 @@ public class RefreshTokenServiceImplTest {
         refreshTokenService.createNewRefreshToken(tokenId, userId);
 
         // Assert
-        verify(refreshTokenRepository).findByIdAndUserId(tokenId, userId);
-        verify(refreshTokenRepository).save(captor.capture());
+        verify(refreshTokenRepository, times(1)).findByIdAndUserId(tokenId, userId);
+        verify(refreshTokenRepository, times(1)).save(captor.capture());
 
         RefreshToken savedToken = captor.getValue();
         assertEquals(tokenId, savedToken.getId());

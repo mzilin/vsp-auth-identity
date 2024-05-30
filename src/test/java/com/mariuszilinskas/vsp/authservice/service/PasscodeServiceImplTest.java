@@ -90,8 +90,8 @@ public class PasscodeServiceImplTest {
 
         // Assert
         verify(passcodeRepository, times(1)).findByUserId(userId);
-        verify(userFeignClient, never()).verifyUserEmail(userId);
-        verify(passcodeRepository, never()).deleteByUserId(userId);
+        verify(userFeignClient, never()).verifyUserEmail(any(UUID.class));
+        verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
     }
 
     @Test
@@ -106,8 +106,8 @@ public class PasscodeServiceImplTest {
 
         // Assert
         verify(passcodeRepository, times(1)).findByUserId(userId);
-        verify(userFeignClient, never()).verifyUserEmail(userId);
-        verify(passcodeRepository, never()).deleteByUserId(userId);
+        verify(userFeignClient, never()).verifyUserEmail(any(UUID.class));
+        verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
     }
 
     @Test
@@ -124,7 +124,7 @@ public class PasscodeServiceImplTest {
         // Assert
         verify(passcodeRepository, times(1)).findByUserId(userId);
         verify(userFeignClient, times(1)).verifyUserEmail(userId);
-        verify(passcodeRepository, never()).deleteByUserId(userId);
+        verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
     }
 
     // ------------------------------------

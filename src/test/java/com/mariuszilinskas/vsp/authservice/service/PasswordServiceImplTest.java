@@ -7,9 +7,7 @@ import com.mariuszilinskas.vsp.authservice.exception.*;
 import com.mariuszilinskas.vsp.authservice.model.Password;
 import com.mariuszilinskas.vsp.authservice.model.ResetToken;
 import com.mariuszilinskas.vsp.authservice.repository.PasswordRepository;
-import com.mariuszilinskas.vsp.authservice.util.AuthTestUtils;
 import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
-import feign.FeignException;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +47,6 @@ public class PasswordServiceImplTest {
     private final String token = RandomStringUtils.randomAlphanumeric(20).toLowerCase();
     private final Password password = new Password(userId);
     private final ResetToken resetToken = new ResetToken(userId);
-    private final FeignException feignException = AuthTestUtils.createFeignException();
 
     // ------------------------------------
 
@@ -158,14 +155,14 @@ public class PasswordServiceImplTest {
         String email = "user@email.com";
         ForgotPasswordRequest request = new ForgotPasswordRequest(email);
 
-        doThrow(feignException).when(authService).getUserIdByEmail(email);
+        doThrow(EmailVerificationException.class).when(authService).getUserIdByEmail(email);
 
         // Act & Assert
         assertThrows(EmailVerificationException.class, () -> passwordService.forgotPassword(request));
 
         // Assert
         verify(authService, times(1)).getUserIdByEmail(email);
-        verify(resetTokenService, never()).createResetToken(userId);
+        verify(resetTokenService, never()).createResetToken(any(UUID.class));
     }
 
     // ------------------------------------
@@ -210,7 +207,7 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(resetTokenService, times(1)).findResetToken(resetToken.getToken());
-        verify(passwordEncoder, never()).encode(newPassword);
+        verify(passwordEncoder, never()).encode(anyString());
         verify(passwordRepository, never()).save(any(Password.class));
     }
 
@@ -228,7 +225,7 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(resetTokenService, times(1)).findResetToken(incorrectToken);
-        verify(passwordEncoder, never()).encode(newPassword);
+        verify(passwordEncoder, never()).encode(anyString());
         verify(passwordRepository, never()).save(any(Password.class));
     }
 
@@ -245,7 +242,7 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(resetTokenService, times(1)).findResetToken(resetToken.getToken());
-        verify(passwordEncoder, never()).encode(newPassword);
+        verify(passwordEncoder, never()).encode(anyString());
         verify(passwordRepository, never()).save(any(Password.class));
     }
 
