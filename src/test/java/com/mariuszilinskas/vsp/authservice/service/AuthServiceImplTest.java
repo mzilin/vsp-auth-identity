@@ -1,6 +1,6 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
-import com.mariuszilinskas.vsp.authservice.dto.CreateCredentialsRequest;
+import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +37,7 @@ public class AuthServiceImplTest {
     @Test
     void testCreatePasswordAndSetPasscode_NewUserCredentials() {
         // Arrange
-        CreateCredentialsRequest request = new CreateCredentialsRequest(userId, "user@example.com", "password123");
+        CredentialsRequest request = new CredentialsRequest(userId, "Password1!");
 
         doNothing().when(passwordService).createNewPassword(request);
         doNothing().when(passcodeService).resetPasscode(userId);
