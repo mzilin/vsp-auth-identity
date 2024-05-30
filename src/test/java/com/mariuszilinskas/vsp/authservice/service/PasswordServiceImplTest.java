@@ -81,7 +81,6 @@ public class PasswordServiceImplTest {
     @Test
     void testCreateNewPassword_Success() {
         // Arrange
-        String email = "user@email.com";
         String newPassword = "Password1";
         ArgumentCaptor<Password> captor = ArgumentCaptor.forClass(Password.class);
         CredentialsRequest request = new CredentialsRequest(userId, newPassword);
@@ -100,6 +99,54 @@ public class PasswordServiceImplTest {
 
         Password savedPassword = captor.getValue();
         assertEquals(password.getPasswordHash(), savedPassword.getPasswordHash());
+    }
+
+    // ------------------------------------
+
+    @Test
+    void testVerifyPassword_Success() {
+        // Arrange
+        CredentialsRequest request = new CredentialsRequest(userId, "Password1!");
+
+        when(passwordRepository.findByUserId(userId)).thenReturn(Optional.of(password));
+        when(passwordEncoder.matches(request.password(), password.getPasswordHash())).thenReturn(true);
+
+        // Act
+        passwordService.verifyPassword(request);
+
+        // Assert
+        verify(passwordRepository, times(1)).findByUserId(userId);
+        verify(passwordEncoder, times(1)).matches(request.password(), password.getPasswordHash());
+    }
+
+    @Test
+    void testVerifyPassword_IncorrectPassword() {
+        // Arrange
+        CredentialsRequest request = new CredentialsRequest(userId, "IncorrectPassword1!");
+
+        when(passwordRepository.findByUserId(userId)).thenReturn(Optional.of(password));
+        when(passwordEncoder.matches(request.password(), password.getPasswordHash())).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(PasswordValidationException.class, () -> passwordService.verifyPassword(request));
+
+        // Assert
+        verify(passwordRepository, times(1)).findByUserId(userId);
+        verify(passwordEncoder, times(1)).matches(request.password(), password.getPasswordHash());
+    }
+
+    @Test
+    void testVerifyPassword_PasswordNotFound() {
+        // Arrange
+        CredentialsRequest request = new CredentialsRequest(userId, "Password1!");
+        when(passwordRepository.findByUserId(userId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> passwordService.verifyPassword(request));
+
+        // Assert
+        verify(passwordRepository, times(1)).findByUserId(userId);
+        verify(passwordEncoder, never()).matches(request.password(), password.getPasswordHash());
     }
 
     // ------------------------------------

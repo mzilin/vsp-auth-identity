@@ -51,7 +51,7 @@ public class PasscodeServiceImpl implements PasscodeService {
         verifyUserEmail(userId);
         deleteUserPasscodes(userId);
 
-        // TODO: Send Welcome Email + TEST
+        // TODO: RabbitMQ - Send Welcome Email + TEST
     }
 
     private boolean isPasscodeExpired(Passcode passcode) {
@@ -78,7 +78,7 @@ public class PasscodeServiceImpl implements PasscodeService {
 
         String passcode = createPasscode(userId);
 
-        // TODO: Send verification Email + TEST
+        // TODO: RabbitMQ - Send verification Email + TEST
     }
 
     private String createPasscode(UUID userId) {
