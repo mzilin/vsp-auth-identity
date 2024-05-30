@@ -7,9 +7,8 @@ import com.mariuszilinskas.vsp.authservice.exception.PasscodeExpiredException;
 import com.mariuszilinskas.vsp.authservice.exception.PasscodeValidationException;
 import com.mariuszilinskas.vsp.authservice.model.Passcode;
 import com.mariuszilinskas.vsp.authservice.repository.PasscodeRepository;
+import com.mariuszilinskas.vsp.authservice.util.AuthTestUtils;
 import feign.FeignException;
-import feign.Request;
-import feign.RequestTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,9 +39,9 @@ public class PasscodeServiceImplTest {
     @InjectMocks
     PasscodeServiceImpl passcodeService;
 
-    private FeignException feignException;
     private final UUID userId = UUID.randomUUID();
     private final Passcode passcode = new Passcode(userId);
+    private final FeignException feignException = AuthTestUtils.createFeignException();
 
     // ------------------------------------
 
@@ -51,19 +49,6 @@ public class PasscodeServiceImplTest {
     void setUp() {
         passcode.setPasscode("123456");
         passcode.setExpiryDate(Instant.now().plusSeconds(10));
-
-        // Empty string for URL as a placeholder
-        Request feignRequest = Request.create(
-                Request.HttpMethod.POST,
-                "", // Empty string for URL as a placeholder
-                Collections.emptyMap(),
-                null,
-                new RequestTemplate()
-        );
-
-        feignException = new FeignException.NotFound(
-                "Not found", feignRequest, null, Collections.emptyMap()
-        );
     }
 
     // ------------------------------------
