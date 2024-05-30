@@ -25,9 +25,8 @@ public class AuthExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthExceptionHandler.class);
 
-    /**
-     * Exception for Request Validations
-     */
+    // ----------------- Request Validations ----------------------
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<FieldErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -55,18 +54,33 @@ public class AuthExceptionHandler {
 
     // --------------------- Specific -----------------------------
 
+    @ExceptionHandler(CredentialsValidationException.class)
+    public ResponseEntity<ErrorResponse> handleCredentialsValidationException(CredentialsValidationException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(EmailVerificationException.class)
     public ResponseEntity<ErrorResponse> handleEmailVerificationException(EmailVerificationException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(PasscodeValidationException.class)
-    public ResponseEntity<ErrorResponse> handlePasscodeValidationException(PasscodeValidationException ex) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(JwtTokenValidationException.class)
+    public ResponseEntity<ErrorResponse> handleJwtTokenValidationException(JwtTokenValidationException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(NoAccessException.class)
+    public ResponseEntity<ErrorResponse> handleNoAccessException(NoAccessException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(PasscodeExpiredException.class)
     public ResponseEntity<ErrorResponse> handlePasscodeExpiredException(PasscodeExpiredException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PasscodeValidationException.class)
+    public ResponseEntity<ErrorResponse> handlePasscodeValidationException(PasscodeValidationException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
@@ -75,9 +89,19 @@ public class AuthExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(RefreshTokenValidationException.class)
+    public ResponseEntity<ErrorResponse> handleRefreshTokenValidationException(RefreshTokenValidationException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(ResetTokenValidationException.class)
     public ResponseEntity<ErrorResponse> handleResetTokenValidationException(ResetTokenValidationException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(SessionExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleSessionExpiredException(SessionExpiredException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     // -----------------------------------------------------------
