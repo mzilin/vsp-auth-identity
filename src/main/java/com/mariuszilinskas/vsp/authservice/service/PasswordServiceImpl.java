@@ -1,6 +1,5 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
-import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
@@ -8,7 +7,6 @@ import com.mariuszilinskas.vsp.authservice.exception.*;
 import com.mariuszilinskas.vsp.authservice.model.Password;
 import com.mariuszilinskas.vsp.authservice.model.ResetToken;
 import com.mariuszilinskas.vsp.authservice.repository.PasswordRepository;
-import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -30,7 +28,7 @@ public class PasswordServiceImpl implements PasswordService {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordServiceImpl.class);
 
-    private final UserFeignClient userFeignClient;
+    private final UserService userService;
     private final PasswordRepository passwordRepository;
     private final ResetTokenService resetTokenService;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -63,19 +61,10 @@ public class PasswordServiceImpl implements PasswordService {
     public void forgotPassword(ForgotPasswordRequest request) {
         logger.info("Setting Password Reset Token for User [email: '{}']", request.email());
 
-        UUID userId = getUserIdByEmail(request.email());
+        UUID userId = userService.getUserIdByEmail(request.email());
         String token = resetTokenService.createResetToken(userId);
 
         // TODO: RabbitMQ - Send Reset Password Email + TEST
-    }
-
-    private UUID getUserIdByEmail(String email) {
-        try {
-            return userFeignClient.getUserIdByEmail(email);
-        } catch (FeignException ex) {
-            logger.error("Failed to get User ID by Email [email: '{}']: {}", email, ex.getMessage());
-            throw new EmailVerificationException();
-        }
     }
 
     @Override

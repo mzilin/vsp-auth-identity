@@ -29,10 +29,10 @@ import static org.mockito.Mockito.*;
 public class PasswordServiceImplTest {
 
     @Mock
-    private AuthService authService;
+    private UserDetailsServiceImpl userDetailsService;
 
     @Mock
-    private ResetTokenServiceImpl resetTokenService;
+    private ResetTokenService resetTokenService;
 
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
@@ -138,14 +138,14 @@ public class PasswordServiceImplTest {
         String email = "user@email.com";
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest(email);
 
-        when(authService.getUserIdByEmail(email)).thenReturn(userId);
+        when(userDetailsService.getUserIdByEmail(email)).thenReturn(userId);
         when(resetTokenService.createResetToken(userId)).thenReturn(resetToken.getToken());
 
         // Act
         passwordService.forgotPassword(forgotPasswordRequest);
 
         // Assert
-        verify(authService, times(1)).getUserIdByEmail(email);
+        verify(userDetailsService, times(1)).getUserIdByEmail(email);
         verify(resetTokenService, times(1)).createResetToken(userId);
     }
 
@@ -155,13 +155,13 @@ public class PasswordServiceImplTest {
         String email = "user@email.com";
         ForgotPasswordRequest request = new ForgotPasswordRequest(email);
 
-        doThrow(EmailVerificationException.class).when(authService).getUserIdByEmail(email);
+        doThrow(EmailVerificationException.class).when(userDetailsService).getUserIdByEmail(email);
 
         // Act & Assert
         assertThrows(EmailVerificationException.class, () -> passwordService.forgotPassword(request));
 
         // Assert
-        verify(authService, times(1)).getUserIdByEmail(email);
+        verify(userDetailsService, times(1)).getUserIdByEmail(email);
         verify(resetTokenService, never()).createResetToken(any(UUID.class));
     }
 
