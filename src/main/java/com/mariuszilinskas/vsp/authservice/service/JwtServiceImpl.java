@@ -25,6 +25,7 @@ import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Service implementation for managing JWT tokens.
@@ -65,13 +66,15 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateRefreshToken(UUID userId, UUID tokenId) {
+    public String generateRefreshToken(UUID tokenId, AuthDetails authDetails) {
         try {
             return Jwts.builder()
-                    .setSubject(userId.toString())
+                    .setSubject(authDetails.userId().toString())
                     .setIssuedAt(new Date())
                     .setExpiration(createExpirationDate(AuthUtils.REFRESH_TOKEN_EXPIRATION_MILLIS))
                     .claim("tokenId", tokenId.toString())
+                    .claim("roles", authDetails.roles())
+                    .claim("authorities", authDetails.authorities())
                     .signWith(getRefreshTokenSecret())
                     .compact();
         } catch (JwtException ex) {
@@ -86,7 +89,7 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public void setAuthCookies(HttpServletResponse response, AuthDetails authDetails, UUID tokenId) {
         response.addHeader("Set-Cookie", createAccessCookie(authDetails).toString());
-        response.addHeader("Set-Cookie", createRefreshCookie(authDetails.userId(), tokenId).toString());
+        response.addHeader("Set-Cookie", createRefreshCookie(tokenId, authDetails).toString());
         logger.info("Auth cookies set for user id: {}", authDetails.userId());
     }
 
@@ -96,8 +99,8 @@ public class JwtServiceImpl implements JwtService {
         return buildCookie(AuthUtils.ACCESS_TOKEN_NAME, accessToken, accessTokenMaxAge);
     }
 
-    private ResponseCookie createRefreshCookie(UUID userId, UUID tokenId) {
-        String refreshToken = generateRefreshToken(userId, tokenId);
+    private ResponseCookie createRefreshCookie( UUID tokenId, AuthDetails authDetails) {
+        String refreshToken = generateRefreshToken(tokenId, authDetails);
         int refreshTokenMaxAge = (int) (AuthUtils.REFRESH_TOKEN_EXPIRATION_MILLIS / 1000);
         return buildCookie(AuthUtils.REFRESH_TOKEN_NAME, refreshToken, refreshTokenMaxAge);
     }
@@ -200,6 +203,23 @@ public class JwtServiceImpl implements JwtService {
         return claimsResolver.apply(claims);
     }
 
+    @Override
+    public AuthDetails extractAuthDetails(String token, String tokenName) {
+        try {
+            Claims claims = extractAllClaims(token, tokenName);
+            String subject = claims.getSubject();
+            if (subject == null) {
+                throw new JwtTokenValidationException();
+            }
+            UUID userId = UUID.fromString(subject);
+            List<String> roles = safelyExtractListFromClaims(claims, "roles");
+            List<String> authorities = safelyExtractListFromClaims(claims, "authorities");
+            return new AuthDetails(userId, roles, authorities);
+        } catch (IllegalArgumentException e) {
+            throw new JwtTokenValidationException();
+        }
+    }
+
     private Claims extractAllClaims(String token, String tokenName) {
         return parseToken(token, tokenName).getBody();
     }
@@ -228,6 +248,17 @@ public class JwtServiceImpl implements JwtService {
 
     private SecretKey getRefreshTokenSecret() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshTokenSecret));
+    }
+
+    private List<String> safelyExtractListFromClaims(Map<String, Object> claims, String claimKey) {
+        Object claimValue = claims.get(claimKey);
+        if (claimValue instanceof List<?> rawList) {
+            return rawList.stream()
+                    .filter(obj -> obj instanceof String)
+                    .map(obj -> (String) obj)
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
 }

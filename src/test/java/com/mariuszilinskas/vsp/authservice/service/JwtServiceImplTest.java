@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -94,7 +95,7 @@ public class JwtServiceImplTest {
     @Test
     void testGenerateRefreshToken() {
         // Act
-        String token = jwtService.generateRefreshToken(userId, UUID.randomUUID());
+        String token = jwtService.generateRefreshToken(UUID.randomUUID(), authDetails);
 
         // Assert
         assertNotNull(token);
@@ -224,19 +225,19 @@ public class JwtServiceImplTest {
     // ------------------------------------
 
     @Test
-    void testValidateAccessToken_WithValidToken_DoesNotThrowException() {
+    void testValidateAccessToken_ValidToken() {
         // Act & Assert
         assertDoesNotThrow(() -> jwtService.validateAccessToken(validAccessToken));
     }
 
     @Test
-    void testValidateAccessToken_WithInvalidToken_ThrowsJwtTokenValidationException() {
+    void testValidateAccessToken_InvalidToken() {
         // Act & Assert
         assertThrows(JwtTokenValidationException.class, () -> jwtService.validateAccessToken(invalidToken));
     }
 
     @Test
-    void testValidateAccessToken_WithExpiredToken_ThrowsJwtTokenValidationException() {
+    void testValidateAccessToken_ExpiredToken() {
         // Act & Assert
         assertThrows(JwtTokenValidationException.class, () -> jwtService.validateAccessToken(expiredAccessToken));
     }
@@ -244,7 +245,7 @@ public class JwtServiceImplTest {
     // ------------------------------------
 
     @Test
-    void testValidateRefreshToken_WithValidToken_DoesNotThrowException() {
+    void testValidateRefreshToken_ValidToken() {
         // Arrange
         when(refreshTokenService.getRefreshToken(tokenId)).thenReturn(refreshToken);
 
@@ -255,19 +256,19 @@ public class JwtServiceImplTest {
     }
 
     @Test
-    void testValidateRefreshToken_WithInvalidToken_ThrowsJwtTokenValidationException() {
+    void testValidateRefreshToken_InvalidToken() {
         // Act & Assert
         assertThrows(JwtTokenValidationException.class, () -> jwtService.validateRefreshToken(invalidToken));
     }
 
     @Test
-    void testValidateRefreshToken_WithExpiredToken_ThrowsJwtTokenValidationException() {
+    void testValidateRefreshToken_ExpiredToken() {
         // Act & Assert
         assertThrows(JwtTokenValidationException.class, () -> jwtService.validateRefreshToken(expiredRefreshToken));
     }
 
     @Test
-    void testValidateRefreshToken_WithTokenNotInDatabase_ThrowsJwtTokenValidationException() {
+    void testValidateRefreshToken_TokenNotInDatabase() {
         // Arrange
         when(refreshTokenService.getRefreshToken(tokenId)).thenReturn(null);
         doNothing().when(refreshTokenService).deleteUserRefreshTokens(userId);
@@ -280,7 +281,7 @@ public class JwtServiceImplTest {
     }
 
     @Test
-    void testValidateRefreshToken_WithExpiredTokenInDatabase_ThrowsJwtTokenValidationException() {
+    void testValidateRefreshToken_ExpiredTokenInDatabase() {
         // Arrange
         refreshToken.setExpiryDate(Instant.now().minusMillis(3600));
         when(refreshTokenService.getRefreshToken(tokenId)).thenReturn(refreshToken);
@@ -297,7 +298,7 @@ public class JwtServiceImplTest {
     // ------------------------------------
 
     @Test
-    void testExtractUserIdFromToken_validAccessToken() {
+    void testExtractUserIdFromToken_ValidAccessToken() {
         // Act
         UUID response = jwtService.extractUserIdFromToken(validAccessToken, AuthUtils.ACCESS_TOKEN_NAME);
 
@@ -306,7 +307,7 @@ public class JwtServiceImplTest {
     }
 
     @Test
-    void testExtractUserIdFromToken_invalidAccessToken() {
+    void testExtractUserIdFromToken_InvalidAccessToken() {
         // Act & Assert
         assertThrows(JwtTokenValidationException.class, () -> {
             jwtService.extractUserIdFromToken(invalidToken, AuthUtils.ACCESS_TOKEN_NAME);
@@ -314,7 +315,7 @@ public class JwtServiceImplTest {
     }
 
     @Test
-    void testExtractUserIdFromToken_validRefreshToken() {
+    void testExtractUserIdFromToken_ValidRefreshToken() {
         // Act
         UUID response = jwtService.extractUserIdFromToken(validRefreshToken, AuthUtils.REFRESH_TOKEN_NAME);
 
@@ -323,7 +324,7 @@ public class JwtServiceImplTest {
     }
 
     @Test
-    void testExtractUserIdFromToken_invalidRefreshToken() {
+    void testExtractUserIdFromToken_InvalidRefreshToken() {
         // Act & Assert
         assertThrows(JwtTokenValidationException.class, () -> {
             jwtService.extractUserIdFromToken(invalidToken, AuthUtils.REFRESH_TOKEN_NAME);
@@ -333,7 +334,7 @@ public class JwtServiceImplTest {
     // ------------------------------------
 
     @Test
-    void testExtractRefreshTokenId_validToken() {
+    void testExtractRefreshTokenId_ValidToken() {
         // Act
         UUID refreshTokenId = jwtService.extractRefreshTokenId(validRefreshToken);
 
@@ -342,9 +343,48 @@ public class JwtServiceImplTest {
     }
 
     @Test
-    void testExtractRefreshTokenId_invalidToken() {
+    void testExtractRefreshTokenId_InvalidToken() {
         // Act & Assert
         assertThrows(JwtTokenValidationException.class, () -> jwtService.extractRefreshTokenId(invalidToken));
     }
 
+    // ------------------------------------
+
+    @Test
+    void testExtractAuthDetails_ValidAccessToken() {
+        // Act
+        AuthDetails response = jwtService.extractAuthDetails(validAccessToken, AuthUtils.ACCESS_TOKEN_NAME);
+
+        // Assert
+        assertEquals(userId, response.userId());
+        assertThat(List.of("USER", "ADMIN")).containsExactlyInAnyOrderElementsOf(response.roles());
+        assertThat(List.of("MANAGE_SETTINGS")).containsExactlyInAnyOrderElementsOf(response.authorities());
+    }
+
+    @Test
+    void testExtractAuthDetails_InvalidAccessToken() {
+        // Act & Assert
+        assertThrows(JwtTokenValidationException.class, () -> {
+            jwtService.extractAuthDetails(invalidToken, AuthUtils.ACCESS_TOKEN_NAME);
+        });
+    }
+
+    @Test
+    void testExtractAuthDetails_ValidRefreshToken() {
+        // Act
+        AuthDetails response = jwtService.extractAuthDetails(validRefreshToken, AuthUtils.REFRESH_TOKEN_NAME);
+
+        // Assert
+        assertEquals(userId, response.userId());
+        assertThat(List.of("USER", "ADMIN")).containsExactlyInAnyOrderElementsOf(response.roles());
+        assertThat(List.of("MANAGE_SETTINGS")).containsExactlyInAnyOrderElementsOf(response.authorities());
+    }
+
+    @Test
+    void testExtractAuthDetails_InvalidRefreshToken() {
+        // Act & Assert
+        assertThrows(JwtTokenValidationException.class, () -> {
+            jwtService.extractAuthDetails(invalidToken, AuthUtils.REFRESH_TOKEN_NAME);
+        });
+    }
 }

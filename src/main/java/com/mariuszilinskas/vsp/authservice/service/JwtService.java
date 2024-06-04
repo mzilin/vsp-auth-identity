@@ -10,7 +10,7 @@ public interface JwtService {
 
     String generateAccessToken(AuthDetails authDetails);
 
-    String generateRefreshToken(UUID userId, UUID tokenId);
+    String generateRefreshToken(UUID tokenId, AuthDetails authDetails);
 
     void setAuthCookies(HttpServletResponse response, AuthDetails authDetails, UUID tokenId);
 
@@ -27,5 +27,7 @@ public interface JwtService {
     UUID extractUserIdFromToken(String token, String tokenName);
 
     UUID extractRefreshTokenId(String token);
+
+    AuthDetails extractAuthDetails(String token, String tokenName);
 
 }
