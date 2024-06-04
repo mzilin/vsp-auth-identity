@@ -1,8 +1,10 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
+import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.LoginRequest;
 import com.mariuszilinskas.vsp.authservice.exception.CredentialsValidationException;
+import com.mariuszilinskas.vsp.authservice.exception.JwtTokenGenerationException;
 import com.mariuszilinskas.vsp.authservice.exception.PasswordValidationException;
 import com.mariuszilinskas.vsp.authservice.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,18 +46,18 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void authenticateUser(LoginRequest request, HttpServletResponse response) {
         try {
-            UUID userId = userService.getUserIdByEmail(request.email());
-            passwordService.verifyPassword(new CredentialsRequest(userId, request.password()));
-            generateAndSetAuthTokens(response, userId);
-        } catch (PasswordValidationException | ResourceNotFoundException ex) {
+            AuthDetails authDetails = userService.getUserAuthDetails(request.email());
+            passwordService.verifyPassword(new CredentialsRequest(authDetails.userId(), request.password()));
+            generateAndSetAuthTokens(response, authDetails);
+        } catch (PasswordValidationException | ResourceNotFoundException | JwtTokenGenerationException ex) {
             throw new CredentialsValidationException();
         }
     }
 
-    private void generateAndSetAuthTokens(HttpServletResponse response, UUID userId) {
+    private void generateAndSetAuthTokens(HttpServletResponse response, AuthDetails authDetails) {
         UUID tokenId = UUID.randomUUID();
-        refreshTokenService.createNewRefreshToken(tokenId, userId);
-        jwtService.setAuthCookies(response, userId, tokenId);
+        refreshTokenService.createNewRefreshToken(tokenId, authDetails.userId());
+        jwtService.setAuthCookies(response, authDetails, tokenId);
     }
 
 }
