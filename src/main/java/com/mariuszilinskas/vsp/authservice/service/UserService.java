@@ -1,9 +1,9 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
-import java.util.UUID;
+import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
 
 public interface UserService {
 
-    UUID getUserIdByEmail(String email);
+    AuthDetails getUserAuthDetails(String email);
 
 }
