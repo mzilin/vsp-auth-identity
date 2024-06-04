@@ -64,6 +64,11 @@ public class AuthExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(JwtTokenGenerationException.class)
+    public ResponseEntity<ErrorResponse> handleJwtTokenGenerationException(JwtTokenGenerationException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(JwtTokenValidationException.class)
     public ResponseEntity<ErrorResponse> handleJwtTokenValidationException(JwtTokenValidationException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED);
