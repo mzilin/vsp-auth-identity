@@ -1,5 +1,6 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
+import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
@@ -19,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -137,15 +139,16 @@ public class PasswordServiceImplTest {
         // Arrange
         String email = "user@email.com";
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest(email);
+        AuthDetails authDetails = new AuthDetails(userId, List.of("USER"), List.of());
 
-        when(userDetailsService.getUserIdByEmail(email)).thenReturn(userId);
+        when(userDetailsService.getUserAuthDetails(email)).thenReturn(authDetails);
         when(resetTokenService.createResetToken(userId)).thenReturn(resetToken.getToken());
 
         // Act
         passwordService.forgotPassword(forgotPasswordRequest);
 
         // Assert
-        verify(userDetailsService, times(1)).getUserIdByEmail(email);
+        verify(userDetailsService, times(1)).getUserAuthDetails(email);
         verify(resetTokenService, times(1)).createResetToken(userId);
     }
 
@@ -155,13 +158,13 @@ public class PasswordServiceImplTest {
         String email = "user@email.com";
         ForgotPasswordRequest request = new ForgotPasswordRequest(email);
 
-        doThrow(EmailVerificationException.class).when(userDetailsService).getUserIdByEmail(email);
+        doThrow(EmailVerificationException.class).when(userDetailsService).getUserAuthDetails(email);
 
         // Act & Assert
         assertThrows(EmailVerificationException.class, () -> passwordService.forgotPassword(request));
 
         // Assert
-        verify(userDetailsService, times(1)).getUserIdByEmail(email);
+        verify(userDetailsService, times(1)).getUserAuthDetails(email);
         verify(resetTokenService, never()).createResetToken(any(UUID.class));
     }
 

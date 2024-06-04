@@ -1,5 +1,6 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
+import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
@@ -61,8 +62,8 @@ public class PasswordServiceImpl implements PasswordService {
     public void forgotPassword(ForgotPasswordRequest request) {
         logger.info("Setting Password Reset Token for User [email: '{}']", request.email());
 
-        UUID userId = userService.getUserIdByEmail(request.email());
-        String token = resetTokenService.createResetToken(userId);
+        AuthDetails authDetails = userService.getUserAuthDetails(request.email());
+        String token = resetTokenService.createResetToken(authDetails.userId());
 
         // TODO: RabbitMQ - Send Reset Password Email + TEST
     }
