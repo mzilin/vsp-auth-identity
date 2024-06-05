@@ -3,6 +3,7 @@ package com.mariuszilinskas.vsp.authservice.controller;
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.LoginRequest;
 import com.mariuszilinskas.vsp.authservice.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,15 @@ public class AuthController {
 
     @PostMapping("/token")
     public ResponseEntity<Void> refreshTokens(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response
+    ) {
+        authService.refreshTokens(request, response);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logoutUser(
     ) {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
