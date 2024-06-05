@@ -1,0 +1,198 @@
+package com.mariuszilinskas.vsp.authservice.service;
+
+import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
+import com.mariuszilinskas.vsp.authservice.dto.VerifyPasscodeRequest;
+import com.mariuszilinskas.vsp.authservice.exception.EmailVerificationException;
+import com.mariuszilinskas.vsp.authservice.exception.PasscodeExpiredException;
+import com.mariuszilinskas.vsp.authservice.exception.PasscodeValidationException;
+import com.mariuszilinskas.vsp.authservice.model.Passcode;
+import com.mariuszilinskas.vsp.authservice.repository.PasscodeRepository;
+import com.mariuszilinskas.vsp.authservice.util.AuthTestUtils;
+import feign.FeignException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class PasscodeServiceImplTest {
+
+    @Mock
+    private TokenGenerationService tokenGenerationService;
+
+    @Mock
+    private PasscodeRepository passcodeRepository;
+
+    @Mock
+    private UserFeignClient userFeignClient;
+
+    @InjectMocks
+    PasscodeServiceImpl passcodeService;
+
+    private final UUID userId = UUID.randomUUID();
+    private final Passcode passcode = new Passcode(userId);
+    private final FeignException feignException = AuthTestUtils.createFeignException();
+
+    // ------------------------------------
+
+    @BeforeEach
+    void setUp() {
+        passcode.setPasscode("123456");
+        passcode.setExpiryDate(Instant.now().plusSeconds(10));
+    }
+
+    // ------------------------------------
+
+    @Test
+    void testVerifyPasscode_Success() {
+        // Arrange
+        VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
+
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+        when(userFeignClient.verifyUserEmail(userId)).thenReturn(null);
+
+        doAnswer(invocation -> {
+            when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
+            return null;
+        }).when(passcodeRepository).deleteByUserId(userId);
+
+        // Act
+        passcodeService.verifyPasscode(userId, request);
+
+        // Assert
+        verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(userFeignClient, times(1)).verifyUserEmail(userId);
+        verify(passcodeRepository, times(1)).deleteByUserId(userId);
+
+        assertFalse(passcodeRepository.findByUserId(userId).isPresent());
+    }
+
+    @Test
+    void testVerifyPasscode_ExpiredPasscode() {
+        // Arrange
+        passcode.setExpiryDate(Instant.now().minusSeconds(10));
+        VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
+
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+
+        // Act & Assert
+        assertThrows(PasscodeExpiredException.class, () -> passcodeService.verifyPasscode(userId, request));
+
+        // Assert
+        verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(userFeignClient, never()).verifyUserEmail(any(UUID.class));
+        verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
+    }
+
+    @Test
+    void testVerifyPasscode_IncorrectPasscode() {
+        // Arrange
+        VerifyPasscodeRequest request = new VerifyPasscodeRequest("wrong1");
+
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+
+        // Act & Assert
+        assertThrows(PasscodeValidationException.class, () -> passcodeService.verifyPasscode(userId, request));
+
+        // Assert
+        verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(userFeignClient, never()).verifyUserEmail(any(UUID.class));
+        verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
+    }
+
+    @Test
+    void testVerifyPasscode_FailsToVerifyEmail() {
+        // Arrange
+        VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
+
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+        doThrow(feignException).when(userFeignClient).verifyUserEmail(userId);
+
+        // Act & Assert
+        assertThrows(EmailVerificationException.class, () -> passcodeService.verifyPasscode(userId, request));
+
+        // Assert
+        verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(userFeignClient, times(1)).verifyUserEmail(userId);
+        verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
+    }
+
+    // ------------------------------------
+
+    @Test
+    void testResetPasscode_Success() {
+        // Arrange
+        String newPasscode = "abc123";
+        passcode.setPasscode(newPasscode);
+        ArgumentCaptor<Passcode> passcodeCaptor = ArgumentCaptor.forClass(Passcode.class);
+
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+        when(tokenGenerationService.generatePasscode()).thenReturn(newPasscode);
+        when(passcodeRepository.save(passcodeCaptor.capture())).thenReturn(passcode);
+
+        // Act
+        passcodeService.resetPasscode(userId);
+
+        // Assert
+        verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(passcodeRepository, times(1)).save(passcodeCaptor.capture());
+
+        Passcode savedPasscode = passcodeCaptor.getValue();
+        assertEquals(userId, savedPasscode.getUserId());
+        assertEquals(newPasscode, savedPasscode.getPasscode());
+    }
+
+    // ------------------------------------
+
+    @Test
+    void testDeleteUserPasscodes_Success() {
+        // Arrange
+        doNothing().when(passcodeRepository).deleteByUserId(userId);
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
+
+        // Act
+        passcodeService.deleteUserPasscodes(userId);
+
+        // Assert
+        verify(passcodeRepository, times(1)).deleteByUserId(userId);
+
+        assertFalse(passcodeRepository.findByUserId(userId).isPresent());
+    }
+
+    @Test
+    void testDeleteUserPasscodes_NonExistingPasscode() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
+
+        // Act
+        passcodeService.deleteUserPasscodes(userId);
+
+        // Assert
+        verify(passcodeRepository, times(1)).deleteByUserId(userId);
+
+        assertFalse(passcodeRepository.findByUserId(userId).isPresent());
+    }
+
+    // ------------------------------------
+
+    @Test
+    void testDeleteExpiredPasscodes_Success() {
+        // Act
+        passcodeService.deleteExpiredPasscodes();
+
+        // Assert
+        verify(passcodeRepository, times(1)).deleteAllByExpiryDateBefore(any(Instant.class));
+    }
+
+}

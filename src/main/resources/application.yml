@@ -20,10 +20,10 @@ spring:
       - optional:configserver:${CONFIG_SERVER_URL}
       - optional:file:./env.properties
   datasource:
-    url: h2:mem:authdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password:
+    url: ${DB_URI}
+    driverClassName: org.postgresql.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -40,25 +40,22 @@ eureka:
     preferIpAddress: true
 
 # Management properties
-endpoints:
-  shutdown:
-    enabled: true
 management:
   info:
     env:
       enabled: true
-  endpoint:
-    shutdown:
-      enabled: true
   endpoints:
     web:
       exposure:
-        include: info, health, refresh, shutdown
+        include: info, health, refresh
+
+app:
+  accessTokenSecret: ${ACCESS_TOKEN_SECRET}
+  refreshTokenSecret: ${REFRESH_TOKEN_SECRET}
 
 # Logging properties
 logging:
   level:
-    root: ERROR
-    com.proactivetechie: INFO
-    org.springframework: INFO
-    org.hibernate: INFO
+    root: INFO
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
