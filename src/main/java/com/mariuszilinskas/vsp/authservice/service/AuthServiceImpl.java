@@ -82,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
 
     private void createRefreshTokenAndSetAuthTokens(HttpServletResponse response, AuthDetails authDetails) {
         UUID tokenId = UUID.randomUUID();
-        refreshTokenService.createNewRefreshToken(tokenId,  authDetails.userId());
+        refreshTokenService.createNewRefreshToken(tokenId, authDetails.userId());
         jwtService.setAuthCookies(response, authDetails, tokenId);
     }
 

@@ -4,8 +4,10 @@ import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.LoginRequest;
 import com.mariuszilinskas.vsp.authservice.exception.CredentialsValidationException;
-import com.mariuszilinskas.vsp.authservice.exception.PasswordValidationException;
+import com.mariuszilinskas.vsp.authservice.exception.JwtTokenValidationException;
 import com.mariuszilinskas.vsp.authservice.exception.ResourceNotFoundException;
+import com.mariuszilinskas.vsp.authservice.exception.SessionExpiredException;
+import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +22,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,6 +53,7 @@ public class AuthServiceImplTest {
     AuthServiceImpl authService;
 
     private final UUID userId = UUID.randomUUID();
+    private final UUID tokenId = UUID.randomUUID();
     private AuthDetails authDetails;
 
     // ------------------------------------
@@ -111,7 +114,7 @@ public class AuthServiceImplTest {
         CredentialsRequest credentialsRequest = new CredentialsRequest(userId, loginRequest.password());
 
         when(userService.getUserAuthDetails(loginRequest.email())).thenReturn(authDetails);
-        doThrow(PasswordValidationException.class).when(passwordService).verifyPassword(credentialsRequest);
+        doThrow(CredentialsValidationException.class).when(passwordService).verifyPassword(credentialsRequest);
 
         // Act & Assert
         assertThrows(CredentialsValidationException.class, () -> {
@@ -121,6 +124,7 @@ public class AuthServiceImplTest {
         // Assert
         verify(userService, times(1)).getUserAuthDetails(loginRequest.email());
         verify(passwordService, times(1)).verifyPassword(credentialsRequest);
+
         verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), eq(userId));
         verify(jwtService, never()).setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
     }
@@ -138,9 +142,83 @@ public class AuthServiceImplTest {
 
         // Assert
         verify(userService, times(1)).getUserAuthDetails(loginRequest.email());
+
         verify(passwordService, never()).verifyPassword(any(CredentialsRequest.class));
         verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), any(UUID.class));
         verify(jwtService, never()).setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
+    }
+
+    // ------------------------------------
+
+    @Test
+    void testRefreshAuthTokens_Success() {
+        // Arrange
+        String refreshToken = "test_refresh_token";
+
+        when(jwtService.extractRefreshToken(mockRequest)).thenReturn(refreshToken);
+        doNothing().when(jwtService).validateRefreshToken(refreshToken);
+        when(jwtService.extractAuthDetails(refreshToken, AuthUtils.REFRESH_TOKEN_NAME)).thenReturn(authDetails);
+        when(jwtService.extractRefreshTokenId(refreshToken)).thenReturn(tokenId);
+        doNothing().when(refreshTokenService).createNewRefreshToken(any(UUID.class), eq(userId));
+        doNothing().when(jwtService).setAuthCookies(eq(mockResponse), eq(authDetails), any(UUID.class));
+        doNothing().when(refreshTokenService).deleteRefreshToken(tokenId);
+
+        // Act
+        authService.refreshTokens(mockRequest, mockResponse);
+
+        // Assert
+        verify(jwtService, times(1)).extractRefreshToken(mockRequest);
+        verify(jwtService, times(1)).validateRefreshToken(refreshToken);
+        verify(jwtService, times(1)).extractAuthDetails(refreshToken, AuthUtils.REFRESH_TOKEN_NAME);
+        verify(jwtService, times(1)).extractRefreshTokenId(refreshToken);
+        verify(refreshTokenService, times(1)).createNewRefreshToken(any(UUID.class), eq(userId));
+        verify(jwtService, times(1)).setAuthCookies(eq(mockResponse), eq(authDetails), any(UUID.class));
+        verify(refreshTokenService, times(1)).deleteRefreshToken(tokenId);
+    }
+
+    @Test
+    void testRefreshAuthTokens_RefreshTokenIsNull() {
+        // Arrange
+        when(jwtService.extractRefreshToken(mockRequest)).thenReturn(null);
+
+        // Act & Assert
+        assertThrows(SessionExpiredException.class, () -> {
+            authService.refreshTokens(mockRequest, mockResponse);
+        });
+
+        // Assert
+        verify(jwtService, times(1)).extractRefreshToken(mockRequest);
+
+        verify(jwtService, never()).validateRefreshToken(anyString());
+        verify(jwtService, never()).extractAuthDetails(anyString(), anyString());
+        verify(jwtService, never()).extractRefreshTokenId(anyString());
+        verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), any(UUID.class));
+        verify(jwtService, never()).setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
+        verify(refreshTokenService, never()).deleteRefreshToken(any(UUID.class));
+    }
+
+    @Test
+    void testRefreshAuthTokens_RefreshTokenNotFound() {
+        // Arrange
+        String refreshToken = "test_refresh_token";
+
+        when(jwtService.extractRefreshToken(mockRequest)).thenReturn(refreshToken);
+        doThrow(new JwtTokenValidationException()).when(jwtService).validateRefreshToken(refreshToken);
+
+        // Act & Assert
+        assertThrows(JwtTokenValidationException.class, () -> {
+            authService.refreshTokens(mockRequest, mockResponse);
+        });
+
+        // Assert
+        verify(jwtService, times(1)).extractRefreshToken(mockRequest);
+        verify(jwtService, times(1)).validateRefreshToken(refreshToken);
+
+        verify(jwtService, never()).extractAuthDetails(anyString(), anyString());
+        verify(jwtService, never()).extractRefreshTokenId(anyString());
+        verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), any(UUID.class));
+        verify(jwtService, never()).setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
+        verify(refreshTokenService, never()).deleteRefreshToken(any(UUID.class));
     }
 
     // ------------------------------------
