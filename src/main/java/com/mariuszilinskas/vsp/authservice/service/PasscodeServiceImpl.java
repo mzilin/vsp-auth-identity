@@ -68,7 +68,6 @@ public class PasscodeServiceImpl implements PasscodeService {
         } catch (FeignException ex) {
             logger.error("Feign Exception when verifying User email: User ID '{}', Status {}, Body {}",
                     userId, ex.status(), ex.contentUTF8());
-            logger.error("Failed to verify User's Email [userId: '{}']: {}", userId, ex.getMessage());
             throw new EmailVerificationException();
         }
     }
