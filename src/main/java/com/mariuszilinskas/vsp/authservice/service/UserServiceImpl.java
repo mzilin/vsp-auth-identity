@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation of UserDetailsService interface.
+ * Implementation of UserService interface.
  *
  * @author Marius Zilinskas
  */
