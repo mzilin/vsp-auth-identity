@@ -86,4 +86,18 @@ public class AuthServiceImpl implements AuthService {
         jwtService.setAuthCookies(response, authDetails, tokenId);
     }
 
+    @Override
+    public void logoutUser(HttpServletRequest request, HttpServletResponse response, UUID userId) {
+        logger.info("Logging out User [userId: {}]", userId);
+        try {
+            String refreshToken = jwtService.extractRefreshToken(request);
+            if (refreshToken != null && !refreshToken.isEmpty()) {
+                UUID tokenId = jwtService.extractRefreshTokenId(refreshToken);
+                refreshTokenService.deleteRefreshToken(tokenId);
+            }
+        } finally {
+            jwtService.clearAuthCookies(response);
+        }
+    }
+
 }

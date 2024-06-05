@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 /**
  * This class provides REST APIs for handling CRUD operations related to authentication.
  *
@@ -24,6 +26,9 @@ public class AuthController {
 
     private final AuthService authService;
 
+    /**
+     * POST /auth/credentials : Creates new user credentials.
+     */
     @PostMapping("/credentials")
     public ResponseEntity<Void> createPasswordAndSetPasscode(
             @Valid @RequestBody CredentialsRequest request
@@ -32,6 +37,9 @@ public class AuthController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    /**
+     * POST /auth/login : Authenticates a user.
+     */
     @PostMapping("/login")
     public ResponseEntity<Void> authenticateUser(
             @Valid @RequestBody LoginRequest request,
@@ -41,6 +49,9 @@ public class AuthController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * POST /auth/token : Refreshes authentication tokens.
+     */
     @PostMapping("/token")
     public ResponseEntity<Void> refreshTokens(
             @NonNull HttpServletRequest request,
@@ -50,9 +61,16 @@ public class AuthController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping("/logout")
+    /**
+     * POST /auth/logout/{userId} : Logs out a user.
+     */
+    @PostMapping("/logout/{userId}")
     public ResponseEntity<Void> logoutUser(
+            @PathVariable UUID userId,
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response
     ) {
+        authService.logoutUser(request, response, userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
