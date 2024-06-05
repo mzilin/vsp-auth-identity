@@ -2,9 +2,8 @@ package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
 import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
-import com.mariuszilinskas.vsp.authservice.exception.EmailVerificationException;
 import com.mariuszilinskas.vsp.authservice.exception.FeignClientException;
-import com.mariuszilinskas.vsp.authservice.util.AuthTestUtils;
+import com.mariuszilinskas.vsp.authservice.util.TestUtils;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,7 @@ public class UserServiceImplTest {
     UserServiceImpl userDetailsService;
 
     private final UUID userId = UUID.randomUUID();
-    private final FeignException feignException = AuthTestUtils.createFeignException();
+    private final FeignException feignException = TestUtils.createFeignException();
 
     // ------------------------------------
 

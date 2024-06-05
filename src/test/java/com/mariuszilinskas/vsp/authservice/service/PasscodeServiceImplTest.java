@@ -7,7 +7,7 @@ import com.mariuszilinskas.vsp.authservice.exception.PasscodeExpiredException;
 import com.mariuszilinskas.vsp.authservice.exception.PasscodeValidationException;
 import com.mariuszilinskas.vsp.authservice.model.Passcode;
 import com.mariuszilinskas.vsp.authservice.repository.PasscodeRepository;
-import com.mariuszilinskas.vsp.authservice.util.AuthTestUtils;
+import com.mariuszilinskas.vsp.authservice.util.TestUtils;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ public class PasscodeServiceImplTest {
 
     private final UUID userId = UUID.randomUUID();
     private final Passcode passcode = new Passcode(userId);
-    private final FeignException feignException = AuthTestUtils.createFeignException();
+    private final FeignException feignException = TestUtils.createFeignException();
 
     // ------------------------------------
 

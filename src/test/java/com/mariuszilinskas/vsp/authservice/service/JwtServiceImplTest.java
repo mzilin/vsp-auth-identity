@@ -3,7 +3,7 @@ package com.mariuszilinskas.vsp.authservice.service;
 import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
 import com.mariuszilinskas.vsp.authservice.exception.JwtTokenValidationException;
 import com.mariuszilinskas.vsp.authservice.model.RefreshToken;
-import com.mariuszilinskas.vsp.authservice.util.AuthTestUtils;
+import com.mariuszilinskas.vsp.authservice.util.TestUtils;
 import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,14 +41,14 @@ public class JwtServiceImplTest {
     @InjectMocks
     private JwtServiceImpl jwtService;
 
-    private static final String secretKey = AuthTestUtils.secretKey;
-    private static final UUID userId = AuthTestUtils.userId;
-    private static final UUID tokenId = AuthTestUtils.tokenId;
-    private static final String validAccessToken = AuthTestUtils.validAccessToken;
-    private static final String validRefreshToken = AuthTestUtils.validRefreshToken;
-    private static final String expiredAccessToken = AuthTestUtils.expiredAccessToken;
-    private static final String expiredRefreshToken = AuthTestUtils.expiredRefreshToken;
-    private static final String invalidToken = AuthTestUtils.invalidToken;
+    private static final String secretKey = TestUtils.secretKey;
+    private static final UUID userId = TestUtils.userId;
+    private static final UUID tokenId = TestUtils.tokenId;
+    private static final String validAccessToken = TestUtils.validAccessToken;
+    private static final String validRefreshToken = TestUtils.validRefreshToken;
+    private static final String expiredAccessToken = TestUtils.expiredAccessToken;
+    private static final String expiredRefreshToken = TestUtils.expiredRefreshToken;
+    private static final String invalidToken = TestUtils.invalidToken;
 
     private AuthDetails authDetails;
     private final RefreshToken refreshToken = new RefreshToken();
