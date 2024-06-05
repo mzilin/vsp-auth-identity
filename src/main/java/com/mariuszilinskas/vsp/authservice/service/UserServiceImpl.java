@@ -2,7 +2,7 @@ package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
 import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
-import com.mariuszilinskas.vsp.authservice.exception.EmailVerificationException;
+import com.mariuszilinskas.vsp.authservice.exception.FeignClientException;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -25,13 +25,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public AuthDetails getUserAuthDetails(String email) {
         logger.info("Getting User ID for User [email: '{}']", email);
-
         try {
             return userFeignClient.getUserAuthDetails(email);
         } catch (FeignException ex) {
-            logger.error("Feign Exception when getting userId from email '{}': Status {}, Body {}",
-                    email, ex.status(), ex.contentUTF8());
-            throw new EmailVerificationException();
+            throw new FeignClientException(email, ex);
         }
     }
 

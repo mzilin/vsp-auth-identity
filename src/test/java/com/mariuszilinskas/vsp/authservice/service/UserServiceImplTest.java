@@ -3,6 +3,7 @@ package com.mariuszilinskas.vsp.authservice.service;
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
 import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
 import com.mariuszilinskas.vsp.authservice.exception.EmailVerificationException;
+import com.mariuszilinskas.vsp.authservice.exception.FeignClientException;
 import com.mariuszilinskas.vsp.authservice.util.AuthTestUtils;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +59,7 @@ public class UserServiceImplTest {
         doThrow(feignException).when(userFeignClient).getUserAuthDetails(email);
 
         // Act & Assert
-        assertThrows(EmailVerificationException.class, () ->  userDetailsService.getUserAuthDetails(email));
+        assertThrows(FeignClientException.class, () ->  userDetailsService.getUserAuthDetails(email));
 
         // Assert
         verify(userFeignClient, times(1)).getUserAuthDetails(email);
