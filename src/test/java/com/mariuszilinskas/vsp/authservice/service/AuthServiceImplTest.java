@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -223,5 +224,61 @@ public class AuthServiceImplTest {
 
     // ------------------------------------
 
+    @Test
+    void testLogoutUser_Success() {
+        // Arrange
+        String expectedRefreshToken = "test_refresh_token";
+        UUID tokenId = UUID.randomUUID();
+
+        when(jwtService.extractRefreshToken(mockRequest)).thenReturn(expectedRefreshToken);
+        when(jwtService.extractRefreshTokenId(expectedRefreshToken)).thenReturn(tokenId);
+        doNothing().when(refreshTokenService).deleteRefreshToken(tokenId);
+
+        // Act
+        authService.logoutUser(mockRequest, mockResponse, userId);
+
+        // Assert
+        verify(jwtService, times(1)).extractRefreshToken(mockRequest);
+        verify(jwtService, times(1)).extractRefreshTokenId(expectedRefreshToken);
+        verify(refreshTokenService, times(1)).deleteRefreshToken(tokenId);
+        verify(jwtService, times(1)).clearAuthCookies(mockResponse);
+    }
+
+    @Test
+    void testLogoutUser_RefreshTokenIsNull() {
+        // Arrange
+        when(jwtService.extractRefreshToken(mockRequest)).thenReturn(null);
+
+        // Act
+        authService.logoutUser(mockRequest, mockResponse, userId);
+
+        // Assert
+        verify(jwtService, times(1)).extractRefreshToken(mockRequest);
+        verify(jwtService, never()).extractRefreshTokenId(anyString());
+        verify(refreshTokenService, never()).deleteRefreshToken(any(UUID.class));
+        verify(jwtService, times(1)).clearAuthCookies(mockResponse);
+    }
+
+    @Test
+    void testLogoutUser_RefreshTokenNotFound() {
+        // Arrange
+        String refreshToken = "test_refresh_token";
+        UUID nonExistingId = UUID.randomUUID();
+
+        when(jwtService.extractRefreshToken(mockRequest)).thenReturn(refreshToken);
+        when(jwtService.extractRefreshTokenId(refreshToken)).thenReturn(nonExistingId);
+        doThrow(new DataIntegrityViolationException("Error deleting refresh token")).when(refreshTokenService).deleteRefreshToken(nonExistingId);
+
+        // Act & Assert
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            authService.logoutUser(mockRequest, mockResponse, userId);
+        });
+
+        // Assert
+        verify(jwtService, times(1)).extractRefreshToken(mockRequest);
+        verify(jwtService, times(1)).extractRefreshTokenId(anyString());
+        verify(refreshTokenService, times(1)).deleteRefreshToken(any(UUID.class));
+        verify(jwtService, times(1)).clearAuthCookies(mockResponse);
+    }
 
 }
