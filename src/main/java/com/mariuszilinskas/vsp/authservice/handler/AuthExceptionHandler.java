@@ -64,6 +64,11 @@ public class AuthExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(FeignClientException.class)
+    public ResponseEntity<ErrorResponse> handleFeignClientException(FeignClientException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(JwtTokenGenerationException.class)
     public ResponseEntity<ErrorResponse> handleJwtTokenGenerationException(JwtTokenGenerationException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -86,11 +91,6 @@ public class AuthExceptionHandler {
 
     @ExceptionHandler(PasscodeValidationException.class)
     public ResponseEntity<ErrorResponse> handlePasscodeValidationException(PasscodeValidationException ex) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(PasswordValidationException.class)
-    public ResponseEntity<ErrorResponse> handlePasswordValidationException(PasswordValidationException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
