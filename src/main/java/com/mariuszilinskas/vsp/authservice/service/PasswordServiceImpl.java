@@ -54,7 +54,7 @@ public class PasswordServiceImpl implements PasswordService {
     }
     private void validatePassword(String providedPassword, Password storedPassword) {
         if (!passwordEncoder.matches(providedPassword, storedPassword.getPasswordHash()))
-            throw new PasswordValidationException();
+            throw new CredentialsValidationException();
     }
 
     @Override

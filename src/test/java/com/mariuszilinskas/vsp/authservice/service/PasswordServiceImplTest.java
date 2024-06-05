@@ -111,7 +111,7 @@ public class PasswordServiceImplTest {
         when(passwordEncoder.matches(request.password(), password.getPasswordHash())).thenReturn(false);
 
         // Act & Assert
-        assertThrows(PasswordValidationException.class, () -> passwordService.verifyPassword(request));
+        assertThrows(CredentialsValidationException.class, () -> passwordService.verifyPassword(request));
 
         // Assert
         verify(passwordRepository, times(1)).findByUserId(userId);
