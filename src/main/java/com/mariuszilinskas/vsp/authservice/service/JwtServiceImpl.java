@@ -25,6 +25,7 @@ import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Service implementation for managing JWT tokens.
@@ -55,8 +56,8 @@ public class JwtServiceImpl implements JwtService {
                     .setSubject(authDetails.userId().toString())
                     .setIssuedAt(new Date())
                     .setExpiration(createExpirationDate(AuthUtils.ACCESS_TOKEN_EXPIRATION_MILLIS))
-                    .claim("roles", authDetails.roles())
-                    .claim("authorities", authDetails.authorities())
+                    .claim("roles", convertListToString(authDetails.roles()))
+                    .claim("authorities", convertListToString(authDetails.authorities()))
                     .signWith(getAccessTokenSecret())
                     .compact();
         } catch (JwtException ex) {
@@ -72,8 +73,6 @@ public class JwtServiceImpl implements JwtService {
                     .setIssuedAt(new Date())
                     .setExpiration(createExpirationDate(AuthUtils.REFRESH_TOKEN_EXPIRATION_MILLIS))
                     .claim("tokenId", tokenId.toString())
-                    .claim("roles", authDetails.roles())
-                    .claim("authorities", authDetails.authorities())
                     .signWith(getRefreshTokenSecret())
                     .compact();
         } catch (JwtException ex) {
@@ -83,6 +82,12 @@ public class JwtServiceImpl implements JwtService {
 
     private static Date createExpirationDate(long expirationTime) {
         return new Date((new Date()).getTime() + expirationTime);
+    }
+
+    private <T> List<String> convertListToString(List<T> list) {
+        return list.stream()
+                .map(Object::toString)
+                .collect(Collectors.toList());
     }
 
     @Override
