@@ -1,5 +1,10 @@
 package com.mariuszilinskas.vsp.authservice.util;
 
+import com.mariuszilinskas.vsp.authservice.enums.UserStatus;
+import com.mariuszilinskas.vsp.authservice.exception.UserStatusAccessException;
+
+import java.util.EnumSet;
+
 public abstract class AuthUtils {
 
     private AuthUtils() {
@@ -19,5 +24,11 @@ public abstract class AuthUtils {
     public static final long ACCESS_TOKEN_EXPIRATION_MILLIS = FIFTEEN_MINUTES_IN_MILLIS;
 
     public static final long REFRESH_TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000L; // 7 days
+
+    public static void checkUserSuspended(UserStatus status) {
+        if (EnumSet.of(UserStatus.SUSPENDED, UserStatus.LOCKED, UserStatus.INACTIVE).contains(status)) {
+            throw new UserStatusAccessException(status.toString());
+        }
+    }
 
 }
