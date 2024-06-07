@@ -30,7 +30,7 @@ public class PasswordController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping("/forgot-password")
+    @PostMapping("/forgot")
     public ResponseEntity<Void> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request
     ){
@@ -38,11 +38,12 @@ public class PasswordController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("/reset-password")
+    @PutMapping("/reset")
     public ResponseEntity<Void> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request
     ){
         passwordService.resetPassword(request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
 }
