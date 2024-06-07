@@ -9,6 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+import java.util.function.Supplier;
+
 /**
  * Implementation of UserService interface.
  *
@@ -22,12 +25,21 @@ public class UserServiceImpl implements UserService {
     private final UserFeignClient userFeignClient;
 
     @Override
-    public AuthDetails getUserAuthDetails(String email) {
-        logger.info("Getting User ID for User [email: '{}']", email);
+    public AuthDetails getUserAuthDetailsWithEmail(String email) {
+        return getUserAuthDetails(() -> userFeignClient.getUserAuthDetailsWithEmail(email), email);
+    }
+
+    @Override
+    public AuthDetails getUserAuthDetailsWithId(UUID userId) {
+        return getUserAuthDetails(() -> userFeignClient.getUserAuthDetailsWithId(userId), userId.toString());
+    }
+
+    private AuthDetails getUserAuthDetails(Supplier<AuthDetails> supplier, String identifier) {
+        logger.info("Getting User Auth Details for User [identifier: '{}']", identifier);
         try {
-            return userFeignClient.getUserAuthDetails(email);
+            return supplier.get();
         } catch (FeignException ex) {
-            throw new FeignClientException(email, ex);
+            throw new FeignClientException(identifier, ex);
         }
     }
 
