@@ -84,6 +84,11 @@ public class AppExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(UserStatusAccessException.class)
+    public ResponseEntity<ErrorResponse> handleUserAccessException(UserStatusAccessException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(PasscodeExpiredException.class)
     public ResponseEntity<ErrorResponse> handlePasscodeExpiredException(PasscodeExpiredException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
