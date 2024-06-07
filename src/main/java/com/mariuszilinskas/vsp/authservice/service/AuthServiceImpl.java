@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * Service implementation for managing User authentication.
@@ -43,13 +44,11 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void authenticateUser(LoginRequest request, HttpServletResponse response) {
         logger.info("Authenticating User [email: {}]", request.email());
-        AuthDetails authDetails;
-        try {
-            authDetails = userService.getUserAuthDetails(request.email());
-        } catch (ResourceNotFoundException ex) {
-            throw new CredentialsValidationException();
-        }
+
+        AuthDetails authDetails = fetchAuthDetails(() -> userService.getUserAuthDetailsWithEmail(request.email()));
+        AuthUtils.checkUserSuspended(authDetails.status());
         passwordService.verifyPassword(new CredentialsRequest(authDetails.userId(), request.password()));
+
         generateAndSetAuthTokens(response, authDetails);
     }
 
@@ -65,21 +64,26 @@ public class AuthServiceImpl implements AuthService {
         }
 
         jwtService.validateRefreshToken(refreshToken);
-        generateAndSetAuthTokens(response, refreshToken);
-    }
+        UUID userId = jwtService.extractUserIdFromToken(refreshToken, AuthUtils.REFRESH_TOKEN_NAME);
 
-    private void generateAndSetAuthTokens(HttpServletResponse response, AuthDetails authDetails) {
-        createRefreshTokenAndSetAuthTokens(response, authDetails);
-    }
+        AuthDetails authDetails = fetchAuthDetails(() -> userService.getUserAuthDetailsWithId(userId));
+        AuthUtils.checkUserSuspended(authDetails.status());
 
-    private void generateAndSetAuthTokens(HttpServletResponse response, String refreshToken) {
-        AuthDetails authDetails = jwtService.extractAuthDetails(refreshToken, AuthUtils.REFRESH_TOKEN_NAME);
         UUID tokenId = jwtService.extractRefreshTokenId(refreshToken);
-        createRefreshTokenAndSetAuthTokens(response, authDetails);
+        generateAndSetAuthTokens(response, authDetails);
+
         refreshTokenService.deleteRefreshToken(tokenId);
     }
 
-    private void createRefreshTokenAndSetAuthTokens(HttpServletResponse response, AuthDetails authDetails) {
+    private AuthDetails fetchAuthDetails(Supplier<AuthDetails> supplier) {
+        try {
+            return supplier.get();
+        } catch (ResourceNotFoundException ex) {
+            throw new CredentialsValidationException();
+        }
+    }
+
+    private void generateAndSetAuthTokens(HttpServletResponse response, AuthDetails authDetails) {
         UUID tokenId = UUID.randomUUID();
         refreshTokenService.createNewRefreshToken(tokenId, authDetails.userId());
         jwtService.setAuthCookies(response, authDetails, tokenId);

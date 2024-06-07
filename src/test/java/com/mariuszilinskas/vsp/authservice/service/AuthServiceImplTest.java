@@ -3,10 +3,9 @@ package com.mariuszilinskas.vsp.authservice.service;
 import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.LoginRequest;
-import com.mariuszilinskas.vsp.authservice.exception.CredentialsValidationException;
-import com.mariuszilinskas.vsp.authservice.exception.JwtTokenValidationException;
-import com.mariuszilinskas.vsp.authservice.exception.ResourceNotFoundException;
-import com.mariuszilinskas.vsp.authservice.exception.SessionExpiredException;
+import com.mariuszilinskas.vsp.authservice.enums.UserRole;
+import com.mariuszilinskas.vsp.authservice.enums.UserStatus;
+import com.mariuszilinskas.vsp.authservice.exception.*;
 import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -55,6 +54,7 @@ public class AuthServiceImplTest {
 
     private final UUID userId = UUID.randomUUID();
     private final UUID tokenId = UUID.randomUUID();
+    private final String refreshToken = "test_refresh_token";
     private AuthDetails authDetails;
 
     // ------------------------------------
@@ -63,8 +63,7 @@ public class AuthServiceImplTest {
     void setUp() {
         mockRequest = new MockHttpServletRequest();
         mockResponse = new MockHttpServletResponse();
-
-        authDetails = new AuthDetails(userId, List.of("USER"), List.of());
+        authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.ACTIVE);
     }
 
     // ------------------------------------
@@ -93,7 +92,7 @@ public class AuthServiceImplTest {
         LoginRequest loginRequest = new LoginRequest("some@email.com", "Password1!");
         CredentialsRequest credentialsRequest = new CredentialsRequest(userId, loginRequest.password());
 
-        when(userService.getUserAuthDetails(loginRequest.email())).thenReturn(authDetails);
+        when(userService.getUserAuthDetailsWithEmail(loginRequest.email())).thenReturn(authDetails);
         doNothing().when(passwordService).verifyPassword(credentialsRequest);
         doNothing().when(refreshTokenService).createNewRefreshToken(any(UUID.class), eq(userId));
         doNothing().when(jwtService).setAuthCookies(eq(mockResponse), eq(authDetails), any(UUID.class));
@@ -102,7 +101,7 @@ public class AuthServiceImplTest {
         authService.authenticateUser(loginRequest, mockResponse);
 
         // Assert
-        verify(userService, times(1)).getUserAuthDetails(loginRequest.email());
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(loginRequest.email());
         verify(passwordService, times(1)).verifyPassword(credentialsRequest);
         verify(refreshTokenService, times(1)).createNewRefreshToken(any(UUID.class), eq(userId));
         verify(jwtService, times(1)).setAuthCookies(eq(mockResponse), eq(authDetails), any(UUID.class));
@@ -114,7 +113,7 @@ public class AuthServiceImplTest {
         LoginRequest loginRequest = new LoginRequest("test@email.com", "wrongPassword");
         CredentialsRequest credentialsRequest = new CredentialsRequest(userId, loginRequest.password());
 
-        when(userService.getUserAuthDetails(loginRequest.email())).thenReturn(authDetails);
+        when(userService.getUserAuthDetailsWithEmail(loginRequest.email())).thenReturn(authDetails);
         doThrow(CredentialsValidationException.class).when(passwordService).verifyPassword(credentialsRequest);
 
         // Act & Assert
@@ -123,7 +122,7 @@ public class AuthServiceImplTest {
         });
 
         // Assert
-        verify(userService, times(1)).getUserAuthDetails(loginRequest.email());
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(loginRequest.email());
         verify(passwordService, times(1)).verifyPassword(credentialsRequest);
 
         verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), eq(userId));
@@ -134,7 +133,7 @@ public class AuthServiceImplTest {
     void testAuthenticateUser_NonExistingUser() {
         // Arrange
         LoginRequest loginRequest = new LoginRequest("some@email.com", "Password1!");
-        when(userService.getUserAuthDetails(loginRequest.email())).thenThrow(ResourceNotFoundException.class);
+        when(userService.getUserAuthDetailsWithEmail(loginRequest.email())).thenThrow(ResourceNotFoundException.class);
 
         // Act & Assert
         assertThrows(CredentialsValidationException.class, () -> {
@@ -142,11 +141,32 @@ public class AuthServiceImplTest {
         });
 
         // Assert
-        verify(userService, times(1)).getUserAuthDetails(loginRequest.email());
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(loginRequest.email());
 
         verify(passwordService, never()).verifyPassword(any(CredentialsRequest.class));
         verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), any(UUID.class));
         verify(jwtService, never()).setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
+    }
+
+    @Test
+    void testAuthenticateUser_UserSuspended() {
+        // Arrange
+        LoginRequest loginRequest = new LoginRequest("some@email.com", "Password1!");
+        authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.SUSPENDED);
+
+        when(userService.getUserAuthDetailsWithEmail(loginRequest.email())).thenReturn(authDetails);
+
+        // Act & Assert
+        assertThrows(UserStatusAccessException.class, () -> {
+            authService.authenticateUser(loginRequest, mockResponse);
+        });
+
+        // Assert
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(loginRequest.email());
+        verify(passwordService, never()).verifyPassword(any(CredentialsRequest.class));
+        verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), any(UUID.class));
+        verify(jwtService, never())
+                .setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
     }
 
     // ------------------------------------
@@ -154,11 +174,10 @@ public class AuthServiceImplTest {
     @Test
     void testRefreshAuthTokens_Success() {
         // Arrange
-        String refreshToken = "test_refresh_token";
-
         when(jwtService.extractRefreshToken(mockRequest)).thenReturn(refreshToken);
         doNothing().when(jwtService).validateRefreshToken(refreshToken);
-        when(jwtService.extractAuthDetails(refreshToken, AuthUtils.REFRESH_TOKEN_NAME)).thenReturn(authDetails);
+        when(jwtService.extractUserIdFromToken(refreshToken, AuthUtils.REFRESH_TOKEN_NAME)).thenReturn(userId);
+        when(userService.getUserAuthDetailsWithId(userId)).thenReturn(authDetails);
         when(jwtService.extractRefreshTokenId(refreshToken)).thenReturn(tokenId);
         doNothing().when(refreshTokenService).createNewRefreshToken(any(UUID.class), eq(userId));
         doNothing().when(jwtService).setAuthCookies(eq(mockResponse), eq(authDetails), any(UUID.class));
@@ -170,7 +189,8 @@ public class AuthServiceImplTest {
         // Assert
         verify(jwtService, times(1)).extractRefreshToken(mockRequest);
         verify(jwtService, times(1)).validateRefreshToken(refreshToken);
-        verify(jwtService, times(1)).extractAuthDetails(refreshToken, AuthUtils.REFRESH_TOKEN_NAME);
+        verify(jwtService, times(1)).extractUserIdFromToken(refreshToken, AuthUtils.REFRESH_TOKEN_NAME);
+        verify(userService, times(1)).getUserAuthDetailsWithId(userId);
         verify(jwtService, times(1)).extractRefreshTokenId(refreshToken);
         verify(refreshTokenService, times(1)).createNewRefreshToken(any(UUID.class), eq(userId));
         verify(jwtService, times(1)).setAuthCookies(eq(mockResponse), eq(authDetails), any(UUID.class));
@@ -191,7 +211,8 @@ public class AuthServiceImplTest {
         verify(jwtService, times(1)).extractRefreshToken(mockRequest);
 
         verify(jwtService, never()).validateRefreshToken(anyString());
-        verify(jwtService, never()).extractAuthDetails(anyString(), anyString());
+        verify(jwtService, never()).extractUserIdFromToken(anyString(), anyString());
+        verify(userService, never()).getUserAuthDetailsWithId(any(UUID.class));
         verify(jwtService, never()).extractRefreshTokenId(anyString());
         verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), any(UUID.class));
         verify(jwtService, never()).setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
@@ -201,8 +222,6 @@ public class AuthServiceImplTest {
     @Test
     void testRefreshAuthTokens_RefreshTokenNotFound() {
         // Arrange
-        String refreshToken = "test_refresh_token";
-
         when(jwtService.extractRefreshToken(mockRequest)).thenReturn(refreshToken);
         doThrow(new JwtTokenValidationException()).when(jwtService).validateRefreshToken(refreshToken);
 
@@ -215,7 +234,35 @@ public class AuthServiceImplTest {
         verify(jwtService, times(1)).extractRefreshToken(mockRequest);
         verify(jwtService, times(1)).validateRefreshToken(refreshToken);
 
-        verify(jwtService, never()).extractAuthDetails(anyString(), anyString());
+        verify(jwtService, never()).extractUserIdFromToken(anyString(), anyString());
+        verify(userService, never()).getUserAuthDetailsWithId(any(UUID.class));
+        verify(jwtService, never()).extractRefreshTokenId(anyString());
+        verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), any(UUID.class));
+        verify(jwtService, never()).setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
+        verify(refreshTokenService, never()).deleteRefreshToken(any(UUID.class));
+    }
+
+    @Test
+    void testRefreshAuthTokens_UserSuspended() {
+        // Arrange
+        authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.SUSPENDED);
+
+        when(jwtService.extractRefreshToken(mockRequest)).thenReturn(refreshToken);
+        doNothing().when(jwtService).validateRefreshToken(refreshToken);
+        when(jwtService.extractUserIdFromToken(refreshToken, AuthUtils.REFRESH_TOKEN_NAME)).thenReturn(userId);
+        when(userService.getUserAuthDetailsWithId(userId)).thenReturn(authDetails);
+
+        // Act & Assert
+        assertThrows(UserStatusAccessException.class, () -> {
+            authService.refreshTokens(mockRequest, mockResponse);
+        });
+
+        // Assert
+        verify(jwtService, times(1)).extractRefreshToken(mockRequest);
+        verify(jwtService, times(1)).validateRefreshToken(refreshToken);
+        verify(jwtService, times(1)).extractUserIdFromToken(refreshToken, AuthUtils.REFRESH_TOKEN_NAME);
+        verify(userService, times(1)).getUserAuthDetailsWithId(userId);
+
         verify(jwtService, never()).extractRefreshTokenId(anyString());
         verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), any(UUID.class));
         verify(jwtService, never()).setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
@@ -227,11 +274,10 @@ public class AuthServiceImplTest {
     @Test
     void testLogoutUser_Success() {
         // Arrange
-        String expectedRefreshToken = "test_refresh_token";
         UUID tokenId = UUID.randomUUID();
 
-        when(jwtService.extractRefreshToken(mockRequest)).thenReturn(expectedRefreshToken);
-        when(jwtService.extractRefreshTokenId(expectedRefreshToken)).thenReturn(tokenId);
+        when(jwtService.extractRefreshToken(mockRequest)).thenReturn(refreshToken);
+        when(jwtService.extractRefreshTokenId(refreshToken)).thenReturn(tokenId);
         doNothing().when(refreshTokenService).deleteRefreshToken(tokenId);
 
         // Act
@@ -239,7 +285,7 @@ public class AuthServiceImplTest {
 
         // Assert
         verify(jwtService, times(1)).extractRefreshToken(mockRequest);
-        verify(jwtService, times(1)).extractRefreshTokenId(expectedRefreshToken);
+        verify(jwtService, times(1)).extractRefreshTokenId(refreshToken);
         verify(refreshTokenService, times(1)).deleteRefreshToken(tokenId);
         verify(jwtService, times(1)).clearAuthCookies(mockResponse);
     }
@@ -262,7 +308,6 @@ public class AuthServiceImplTest {
     @Test
     void testLogoutUser_RefreshTokenNotFound() {
         // Arrange
-        String refreshToken = "test_refresh_token";
         UUID nonExistingId = UUID.randomUUID();
 
         when(jwtService.extractRefreshToken(mockRequest)).thenReturn(refreshToken);
