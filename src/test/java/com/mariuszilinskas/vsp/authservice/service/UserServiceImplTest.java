@@ -2,6 +2,8 @@ package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
 import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
+import com.mariuszilinskas.vsp.authservice.enums.UserRole;
+import com.mariuszilinskas.vsp.authservice.enums.UserStatus;
 import com.mariuszilinskas.vsp.authservice.exception.FeignClientException;
 import com.mariuszilinskas.vsp.authservice.util.TestUtils;
 import feign.FeignException;
@@ -28,40 +30,67 @@ public class UserServiceImplTest {
     UserServiceImpl userDetailsService;
 
     private final UUID userId = UUID.randomUUID();
+    private final String email = "user@email.com";
+    private AuthDetails authDetails;
     private final FeignException feignException = TestUtils.createFeignException();
 
     // ------------------------------------
 
     @BeforeEach
-    void setUp() {}
+    void setUp() {
+        authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.ACTIVE);
+    }
 
     // ------------------------------------
 
     @Test
-    void testGetUserAuthDetails_Success() {
+    void testGetUserAuthDetailsWithEmail_Success() {
         // Arrange
-        String email = "some@email.com";
-        AuthDetails authDetails = new AuthDetails(userId, List.of("USER"), List.of());
-        when(userFeignClient.getUserAuthDetails(email)).thenReturn(authDetails);
+        when(userFeignClient.getUserAuthDetailsWithEmail(email)).thenReturn(authDetails);
 
         // Act
-        userDetailsService.getUserAuthDetails(email);
+        userDetailsService.getUserAuthDetailsWithEmail(email);
 
         // Assert
-        verify(userFeignClient, times(1)).getUserAuthDetails(email);
+        verify(userFeignClient, times(1)).getUserAuthDetailsWithEmail(email);
     }
 
     @Test
-    void testGetUserAuthDetails_FeignException() {
+    void testGetUserAuthDetailsWithEmail_FeignException() {
         // Arrange
-        String email = "some@email.com";
-        doThrow(feignException).when(userFeignClient).getUserAuthDetails(email);
+        doThrow(feignException).when(userFeignClient).getUserAuthDetailsWithEmail(email);
 
         // Act & Assert
-        assertThrows(FeignClientException.class, () ->  userDetailsService.getUserAuthDetails(email));
+        assertThrows(FeignClientException.class, () ->  userDetailsService.getUserAuthDetailsWithEmail(email));
 
         // Assert
-        verify(userFeignClient, times(1)).getUserAuthDetails(email);
+        verify(userFeignClient, times(1)).getUserAuthDetailsWithEmail(email);
+    }
+
+    // ------------------------------------
+
+    @Test
+    void testGetUserAuthDetailsWithId_Success() {
+        // Arrange
+        when(userFeignClient.getUserAuthDetailsWithId(userId)).thenReturn(authDetails);
+
+        // Act
+        userDetailsService.getUserAuthDetailsWithId(userId);
+
+        // Assert
+        verify(userFeignClient, times(1)).getUserAuthDetailsWithId(userId);
+    }
+
+    @Test
+    void testGetUserAuthDetailsWithId_FeignException() {
+        // Arrange
+        doThrow(feignException).when(userFeignClient).getUserAuthDetailsWithId(userId);
+
+        // Act & Assert
+        assertThrows(FeignClientException.class, () ->  userDetailsService.getUserAuthDetailsWithId(userId));
+
+        // Assert
+        verify(userFeignClient, times(1)).getUserAuthDetailsWithId(userId);
     }
 
     // ------------------------------------
