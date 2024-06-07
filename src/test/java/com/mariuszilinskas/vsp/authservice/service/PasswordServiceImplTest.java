@@ -48,6 +48,7 @@ public class PasswordServiceImplTest {
     PasswordServiceImpl passwordService;
 
     private final UUID userId = UUID.randomUUID();
+    private final String email = "user@email.com";
     private final String token = RandomStringUtils.randomAlphanumeric(20).toLowerCase();
     private final Password password = new Password(userId);
     private final ResetToken resetToken = new ResetToken(userId);
@@ -139,7 +140,6 @@ public class PasswordServiceImplTest {
     @Test
     void testForgotPassword_Success() {
         // Arrange
-        String email = "user@email.com";
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest(email);
         AuthDetails authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.ACTIVE);
 
@@ -157,7 +157,6 @@ public class PasswordServiceImplTest {
     @Test
     void testForgotPassword_FailsToFindUser() {
         // Arrange
-        String email = "user@email.com";
         ForgotPasswordRequest request = new ForgotPasswordRequest(email);
 
         doThrow(EmailVerificationException.class).when(userService).getUserAuthDetailsWithEmail(email);
@@ -171,9 +170,8 @@ public class PasswordServiceImplTest {
     }
 
     @Test
-    void testForgotPassword_NotActiveUser() {
+    void testForgotPassword_SuspendedUser() {
         // Arrange
-        String email = "user@email.com";
         ForgotPasswordRequest request = new ForgotPasswordRequest(email);
         AuthDetails authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.SUSPENDED);
 

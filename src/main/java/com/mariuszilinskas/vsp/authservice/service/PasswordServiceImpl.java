@@ -4,11 +4,11 @@ import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
-import com.mariuszilinskas.vsp.authservice.enums.UserStatus;
 import com.mariuszilinskas.vsp.authservice.exception.*;
 import com.mariuszilinskas.vsp.authservice.model.Password;
 import com.mariuszilinskas.vsp.authservice.model.ResetToken;
 import com.mariuszilinskas.vsp.authservice.repository.PasswordRepository;
+import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -63,18 +63,12 @@ public class PasswordServiceImpl implements PasswordService {
         logger.info("Setting Password Reset Token for User [email: '{}']", request.email());
 
         AuthDetails authDetails = userService.getUserAuthDetailsWithEmail(request.email());
-        checkUserActive(authDetails.status());
+        AuthUtils.checkUserSuspended(authDetails.status());
 
         String token = resetTokenService.createResetToken(authDetails.userId());
 
         // TODO: RabbitMQ - Send Reset Password Email + TEST
     }
-
-    private void checkUserActive(UserStatus status) {
-        if (UserStatus.ACTIVE != status)
-            throw new UserStatusAccessException(status.toString());
-    }
-
 
     @Override
     @Transactional
