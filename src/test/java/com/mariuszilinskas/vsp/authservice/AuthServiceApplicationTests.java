@@ -26,31 +26,31 @@ class AuthServiceApplicationTests {
     // ------------------------ Services ----------------------------
 
     @Autowired
-    private AuthService authService;
+    private AuthServiceImpl authService;
 
     @Autowired
-    private DataDeletionService dataDeletionService;
+    private DataDeletionServiceImpl dataDeletionService;
 
     @Autowired
-    private JwtService jwtService;
+    private JwtServiceImpl jwtService;
 
     @Autowired
-    private PasscodeService passcodeService;
+    private PasscodeServiceImpl passcodeService;
 
     @Autowired
-    private PasswordService passwordService;
+    private PasswordServiceImpl passwordService;
 
     @Autowired
-    private RefreshTokenService refreshTokenService;
+    private RefreshTokenServiceImpl refreshTokenService;
 
     @Autowired
-    private ResetTokenService resetTokenService;
+    private ResetTokenServiceImpl resetTokenService;
 
     @Autowired
     private TokenGenerationService tokenGenerationService;
 
     @Autowired
-    private UserService userService;
+    private UserServiceImpl userService;
 
     // ---------------------- Repositories --------------------------
 
