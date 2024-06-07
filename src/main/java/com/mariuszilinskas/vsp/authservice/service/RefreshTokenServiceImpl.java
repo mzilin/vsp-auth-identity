@@ -23,7 +23,6 @@ import java.util.UUID;
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     private static final Logger logger = LoggerFactory.getLogger(RefreshTokenServiceImpl.class);
-
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
@@ -65,4 +64,5 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         logger.info("Deleting Expired Refresh Tokens");
         refreshTokenRepository.deleteAllByExpiryDateBefore(Instant.now());
     }
+
 }

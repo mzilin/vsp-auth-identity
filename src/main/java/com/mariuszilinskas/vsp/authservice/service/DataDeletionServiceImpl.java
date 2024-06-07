@@ -18,7 +18,6 @@ import java.util.UUID;
 public class DataDeletionServiceImpl implements DataDeletionService {
 
     private static final Logger logger = LoggerFactory.getLogger(DataDeletionServiceImpl.class);
-
     private final PasscodeService passcodeService;
     private final PasswordService passwordService;
     private final ResetTokenService resetTokenService;

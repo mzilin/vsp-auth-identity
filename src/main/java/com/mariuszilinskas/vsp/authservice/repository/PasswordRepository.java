@@ -18,4 +18,5 @@ public interface PasswordRepository extends JpaRepository<Password, UUID> {
     Optional<Password> findByUserId(UUID userId);
 
     void deleteByUserId(UUID userId);
+
 }

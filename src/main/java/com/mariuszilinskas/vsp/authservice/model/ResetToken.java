@@ -38,4 +38,5 @@ public class ResetToken {
     public ResetToken(UUID userId) {
         this.userId = userId;
     }
+
 }

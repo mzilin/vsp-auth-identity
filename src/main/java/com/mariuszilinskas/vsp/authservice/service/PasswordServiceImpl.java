@@ -28,7 +28,6 @@ import java.util.UUID;
 public class PasswordServiceImpl implements PasswordService {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordServiceImpl.class);
-
     private final UserService userService;
     private final PasswordRepository passwordRepository;
     private final ResetTokenService resetTokenService;

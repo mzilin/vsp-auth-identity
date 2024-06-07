@@ -21,10 +21,9 @@ public class DataDeletionController {
     private final DataDeletionService dataDeletionService;
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUserAuthData(
-            @PathVariable UUID userId
-    ){
+    public ResponseEntity<Void> deleteUserAuthData(@PathVariable UUID userId){
         dataDeletionService.deleteUserAuthData(userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
 }

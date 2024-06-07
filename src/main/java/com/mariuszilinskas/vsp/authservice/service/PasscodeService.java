@@ -13,4 +13,5 @@ public interface PasscodeService {
     void deleteUserPasscodes(UUID userId);
 
     void deleteExpiredPasscodes();
+
 }

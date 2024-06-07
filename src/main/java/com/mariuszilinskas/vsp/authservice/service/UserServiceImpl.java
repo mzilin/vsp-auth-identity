@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
-
     private final UserFeignClient userFeignClient;
 
     @Override

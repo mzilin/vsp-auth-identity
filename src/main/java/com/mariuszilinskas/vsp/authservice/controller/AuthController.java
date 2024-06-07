@@ -73,4 +73,5 @@ public class AuthController {
         authService.logoutUser(request, response, userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
 }

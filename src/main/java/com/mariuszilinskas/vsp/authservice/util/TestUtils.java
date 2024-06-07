@@ -39,4 +39,5 @@ public abstract class TestUtils {
         );
         return new FeignException.NotFound("Not found", feignRequest, null, Collections.emptyMap());
     }
+
 }

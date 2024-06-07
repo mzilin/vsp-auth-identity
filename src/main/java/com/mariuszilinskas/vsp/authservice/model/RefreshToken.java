@@ -33,4 +33,5 @@ public class RefreshToken {
         this.id = tokenId;
         this.userId = userId;
     }
+
 }

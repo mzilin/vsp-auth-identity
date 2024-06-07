@@ -25,7 +25,6 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
-
     private final JwtService jwtService;
     private final PasscodeService passcodeService;
     private final PasswordService passwordService;

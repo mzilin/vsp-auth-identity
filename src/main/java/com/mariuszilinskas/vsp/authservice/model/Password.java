@@ -41,4 +41,5 @@ public class Password {
     public Password(UUID userId) {
         this.userId = userId;
     }
+
 }

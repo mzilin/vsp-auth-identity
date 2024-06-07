@@ -38,4 +38,5 @@ public class Passcode {
     public Passcode(UUID userId) {
         this.userId = userId;
     }
+
 }

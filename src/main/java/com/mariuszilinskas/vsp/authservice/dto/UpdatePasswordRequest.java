@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record UpdatePasswordRequest (
+
         @NotBlank(message = "currentPassword cannot be blank")
         String currentPassword,
 
@@ -18,4 +19,5 @@ public record UpdatePasswordRequest (
                         message = "newPassword must contain at least one special character")
         })
         String newPassword
+
 ) {}

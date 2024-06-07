@@ -11,4 +11,5 @@ public class JwtTokenGenerationException extends RuntimeException {
     public JwtTokenGenerationException(String tokenType) {
         super(String.format("Error when generating %s.", tokenType));
     }
+
 }

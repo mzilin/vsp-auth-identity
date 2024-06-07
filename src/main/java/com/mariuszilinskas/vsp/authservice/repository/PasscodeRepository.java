@@ -21,4 +21,5 @@ public interface PasscodeRepository extends JpaRepository<Passcode, UUID> {
     void deleteByUserId(UUID userId);
 
     void deleteAllByExpiryDateBefore(Instant expiryDate);
+
 }

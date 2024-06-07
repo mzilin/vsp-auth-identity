@@ -23,7 +23,6 @@ import java.util.UUID;
 public class ResetTokenServiceImpl implements ResetTokenService {
 
     private static final Logger logger = LoggerFactory.getLogger(ResetTokenServiceImpl.class);
-
     private final ResetTokenRepository resetTokenRepository;
     private final TokenGenerationService tokenGenerationService;
 

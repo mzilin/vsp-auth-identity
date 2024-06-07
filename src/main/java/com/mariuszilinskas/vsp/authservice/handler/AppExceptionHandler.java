@@ -123,4 +123,5 @@ public class AppExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(message, status.value(), status.getReasonPhrase());
         return new ResponseEntity<>(errorResponse, status);
     }
+
 }

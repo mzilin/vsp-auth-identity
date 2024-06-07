@@ -19,13 +19,9 @@ public class FieldErrorResponse {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = AuthUtils.TIMESTAMP_FORMAT)
     private ZonedDateTime timestamp;
-
     private final int status;
-
     private final String error;
-
     private final String message;
-
     private final Map<String, String> fieldErrors;
 
     /**
@@ -43,4 +39,5 @@ public class FieldErrorResponse {
         this.error = error;
         timestamp = ZonedDateTime.now();
     }
+
 }
