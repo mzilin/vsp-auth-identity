@@ -26,12 +26,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthDetails getUserAuthDetailsWithEmail(String email) {
-        return getUserAuthDetails(() -> userFeignClient.getUserAuthDetailsWithEmail(email), email);
+        return getUserAuthDetails(() -> userFeignClient.getUserAuthDetailsByEmail(email), email);
     }
 
     @Override
     public AuthDetails getUserAuthDetailsWithId(UUID userId) {
-        return getUserAuthDetails(() -> userFeignClient.getUserAuthDetailsWithId(userId), userId.toString());
+        return getUserAuthDetails(() -> userFeignClient.getUserAuthDetailsByUserId(userId), userId.toString());
     }
 
     private AuthDetails getUserAuthDetails(Supplier<AuthDetails> supplier, String identifier) {

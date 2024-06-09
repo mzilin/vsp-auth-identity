@@ -10,13 +10,13 @@ import java.util.UUID;
 @FeignClient("users")
 public interface UserFeignClient {
 
-    @PatchMapping(value = "/{userId}/verify", consumes = "application/json")
+    @PatchMapping(value = "/user/{userId}/verify", consumes = "application/json")
     ResponseEntity<Void> verifyUserEmail(@PathVariable("userId") UUID userId);
 
-    @GetMapping(value = "/auth/details/email", consumes = "application/json")
-    AuthDetails getUserAuthDetailsWithEmail(@RequestParam String email);
+    @GetMapping(value = "/user/auth-details/by-email", consumes = "application/json")
+    AuthDetails getUserAuthDetailsByEmail(@RequestParam String email);
 
-    @GetMapping(value = "/auth/details/id", consumes = "application/json")
-    AuthDetails getUserAuthDetailsWithId(@RequestParam UUID userId);
+    @GetMapping(value = "/user/auth-details/by-userid", consumes = "application/json")
+    AuthDetails getUserAuthDetailsByUserId(@RequestParam UUID userId);
 
 }

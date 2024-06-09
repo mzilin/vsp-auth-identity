@@ -46,25 +46,25 @@ public class UserServiceImplTest {
     @Test
     void testGetUserAuthDetailsWithEmail_Success() {
         // Arrange
-        when(userFeignClient.getUserAuthDetailsWithEmail(email)).thenReturn(authDetails);
+        when(userFeignClient.getUserAuthDetailsByEmail(email)).thenReturn(authDetails);
 
         // Act
         userDetailsService.getUserAuthDetailsWithEmail(email);
 
         // Assert
-        verify(userFeignClient, times(1)).getUserAuthDetailsWithEmail(email);
+        verify(userFeignClient, times(1)).getUserAuthDetailsByEmail(email);
     }
 
     @Test
     void testGetUserAuthDetailsWithEmail_FeignException() {
         // Arrange
-        doThrow(feignException).when(userFeignClient).getUserAuthDetailsWithEmail(email);
+        doThrow(feignException).when(userFeignClient).getUserAuthDetailsByEmail(email);
 
         // Act & Assert
         assertThrows(FeignClientException.class, () ->  userDetailsService.getUserAuthDetailsWithEmail(email));
 
         // Assert
-        verify(userFeignClient, times(1)).getUserAuthDetailsWithEmail(email);
+        verify(userFeignClient, times(1)).getUserAuthDetailsByEmail(email);
     }
 
     // ------------------------------------
@@ -72,25 +72,25 @@ public class UserServiceImplTest {
     @Test
     void testGetUserAuthDetailsWithId_Success() {
         // Arrange
-        when(userFeignClient.getUserAuthDetailsWithId(userId)).thenReturn(authDetails);
+        when(userFeignClient.getUserAuthDetailsByUserId(userId)).thenReturn(authDetails);
 
         // Act
         userDetailsService.getUserAuthDetailsWithId(userId);
 
         // Assert
-        verify(userFeignClient, times(1)).getUserAuthDetailsWithId(userId);
+        verify(userFeignClient, times(1)).getUserAuthDetailsByUserId(userId);
     }
 
     @Test
     void testGetUserAuthDetailsWithId_FeignException() {
         // Arrange
-        doThrow(feignException).when(userFeignClient).getUserAuthDetailsWithId(userId);
+        doThrow(feignException).when(userFeignClient).getUserAuthDetailsByUserId(userId);
 
         // Act & Assert
         assertThrows(FeignClientException.class, () ->  userDetailsService.getUserAuthDetailsWithId(userId));
 
         // Assert
-        verify(userFeignClient, times(1)).getUserAuthDetailsWithId(userId);
+        verify(userFeignClient, times(1)).getUserAuthDetailsByUserId(userId);
     }
 
     // ------------------------------------
