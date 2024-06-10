@@ -23,6 +23,7 @@ public class Passcode {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @JoinColumn(name = "user_id", nullable = false)

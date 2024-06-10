@@ -21,6 +21,7 @@ import java.util.UUID;
 public class RefreshToken {
 
     @Id
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @Column(name = "user_id", nullable = false)
