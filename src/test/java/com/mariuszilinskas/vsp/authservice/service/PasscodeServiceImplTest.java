@@ -37,7 +37,7 @@ public class PasscodeServiceImplTest {
     private UserFeignClient userFeignClient;
 
     @InjectMocks
-    PasscodeServiceImpl passcodeService;
+    private PasscodeServiceImpl passcodeService;
 
     private final UUID userId = UUID.randomUUID();
     private final Passcode passcode = new Passcode(userId);

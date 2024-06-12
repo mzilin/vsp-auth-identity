@@ -27,7 +27,7 @@ public class UserServiceImplTest {
     private UserFeignClient userFeignClient;
 
     @InjectMocks
-    UserServiceImpl userDetailsService;
+    private UserServiceImpl userDetailsService;
 
     private final UUID userId = UUID.randomUUID();
     private final String email = "user@email.com";

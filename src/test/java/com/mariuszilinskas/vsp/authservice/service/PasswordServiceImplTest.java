@@ -45,7 +45,7 @@ public class PasswordServiceImplTest {
     private PasswordRepository passwordRepository;
 
     @InjectMocks
-    PasswordServiceImpl passwordService;
+    private PasswordServiceImpl passwordService;
 
     private final UUID userId = UUID.randomUUID();
     private final String email = "user@email.com";

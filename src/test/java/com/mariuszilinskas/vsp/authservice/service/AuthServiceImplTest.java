@@ -50,7 +50,7 @@ public class AuthServiceImplTest {
     private HttpServletResponse mockResponse;
 
     @InjectMocks
-    AuthServiceImpl authService;
+    private AuthServiceImpl authService;
 
     private final UUID userId = UUID.randomUUID();
     private final UUID tokenId = UUID.randomUUID();

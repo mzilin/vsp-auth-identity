@@ -31,7 +31,7 @@ public class ResetTokenServiceImplTest {
     private ResetTokenRepository resetTokenRepository;
 
     @InjectMocks
-    ResetTokenServiceImpl resetTokenService;
+    private ResetTokenServiceImpl resetTokenService;
 
     private final UUID userId = UUID.randomUUID();
     private final ResetToken resetToken = new ResetToken(userId);
