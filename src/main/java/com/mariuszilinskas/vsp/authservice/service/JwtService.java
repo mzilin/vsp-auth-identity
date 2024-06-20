@@ -28,6 +28,4 @@ public interface JwtService {
 
     UUID extractRefreshTokenId(String token);
 
-    AuthDetails extractAuthDetails(String token, String tokenName);
-
 }

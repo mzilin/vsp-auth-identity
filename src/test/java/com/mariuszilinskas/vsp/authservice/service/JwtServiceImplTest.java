@@ -1,9 +1,11 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
+import com.mariuszilinskas.vsp.authservice.enums.UserRole;
+import com.mariuszilinskas.vsp.authservice.enums.UserStatus;
 import com.mariuszilinskas.vsp.authservice.exception.JwtTokenValidationException;
 import com.mariuszilinskas.vsp.authservice.model.RefreshToken;
-import com.mariuszilinskas.vsp.authservice.util.AuthTestUtils;
+import com.mariuszilinskas.vsp.authservice.util.TestUtils;
 import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +24,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -41,14 +42,14 @@ public class JwtServiceImplTest {
     @InjectMocks
     private JwtServiceImpl jwtService;
 
-    private static final String secretKey = AuthTestUtils.secretKey;
-    private static final UUID userId = AuthTestUtils.userId;
-    private static final UUID tokenId = AuthTestUtils.tokenId;
-    private static final String validAccessToken = AuthTestUtils.validAccessToken;
-    private static final String validRefreshToken = AuthTestUtils.validRefreshToken;
-    private static final String expiredAccessToken = AuthTestUtils.expiredAccessToken;
-    private static final String expiredRefreshToken = AuthTestUtils.expiredRefreshToken;
-    private static final String invalidToken = AuthTestUtils.invalidToken;
+    private static final String secretKey = TestUtils.secretKey;
+    private static final UUID userId = TestUtils.userId;
+    private static final UUID tokenId = TestUtils.tokenId;
+    private static final String validAccessToken = TestUtils.validAccessToken;
+    private static final String validRefreshToken = TestUtils.validRefreshToken;
+    private static final String expiredAccessToken = TestUtils.expiredAccessToken;
+    private static final String expiredRefreshToken = TestUtils.expiredRefreshToken;
+    private static final String invalidToken = TestUtils.invalidToken;
 
     private AuthDetails authDetails;
     private final RefreshToken refreshToken = new RefreshToken();
@@ -61,7 +62,7 @@ public class JwtServiceImplTest {
         setPrivateField(jwtService, "refreshTokenSecret", secretKey);
         setPrivateField(jwtService, "environment", AuthUtils.PRODUCTION_ENV);
 
-        authDetails = new AuthDetails(userId, List.of("USER"), List.of());
+        authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.ACTIVE);
 
         refreshToken.setId(tokenId);
         refreshToken.setUserId(userId);
@@ -348,43 +349,4 @@ public class JwtServiceImplTest {
         assertThrows(JwtTokenValidationException.class, () -> jwtService.extractRefreshTokenId(invalidToken));
     }
 
-    // ------------------------------------
-
-    @Test
-    void testExtractAuthDetails_ValidAccessToken() {
-        // Act
-        AuthDetails response = jwtService.extractAuthDetails(validAccessToken, AuthUtils.ACCESS_TOKEN_NAME);
-
-        // Assert
-        assertEquals(userId, response.userId());
-        assertThat(List.of("USER", "ADMIN")).containsExactlyInAnyOrderElementsOf(response.roles());
-        assertThat(List.of("MANAGE_SETTINGS")).containsExactlyInAnyOrderElementsOf(response.authorities());
-    }
-
-    @Test
-    void testExtractAuthDetails_InvalidAccessToken() {
-        // Act & Assert
-        assertThrows(JwtTokenValidationException.class, () -> {
-            jwtService.extractAuthDetails(invalidToken, AuthUtils.ACCESS_TOKEN_NAME);
-        });
-    }
-
-    @Test
-    void testExtractAuthDetails_ValidRefreshToken() {
-        // Act
-        AuthDetails response = jwtService.extractAuthDetails(validRefreshToken, AuthUtils.REFRESH_TOKEN_NAME);
-
-        // Assert
-        assertEquals(userId, response.userId());
-        assertThat(List.of("USER", "ADMIN")).containsExactlyInAnyOrderElementsOf(response.roles());
-        assertThat(List.of("MANAGE_SETTINGS")).containsExactlyInAnyOrderElementsOf(response.authorities());
-    }
-
-    @Test
-    void testExtractAuthDetails_InvalidRefreshToken() {
-        // Act & Assert
-        assertThrows(JwtTokenValidationException.class, () -> {
-            jwtService.extractAuthDetails(invalidToken, AuthUtils.REFRESH_TOKEN_NAME);
-        });
-    }
 }

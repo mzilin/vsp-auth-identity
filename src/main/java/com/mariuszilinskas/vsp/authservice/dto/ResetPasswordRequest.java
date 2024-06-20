@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record ResetPasswordRequest(
+
         @NotBlank(message = "password cannot be blank")
         @Size(min = 8, max = 64, message = "password must be between 8 and 64 characters")
         @Pattern.List({
@@ -18,4 +19,5 @@ public record ResetPasswordRequest(
 
         @NotBlank(message = "resetToken cannot be blank")
         String resetToken
+
 ) {}

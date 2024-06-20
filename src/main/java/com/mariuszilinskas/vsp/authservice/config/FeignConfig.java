@@ -19,4 +19,5 @@ public class FeignConfig {
     public Decoder decoder() {
         return new JacksonDecoder();
     }
+
 }

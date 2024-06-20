@@ -15,4 +15,5 @@ public class ResourceNotFoundException extends RuntimeException {
     private static String formatErrorMessage(String entity, String identifierType, Object identifierValue) {
         return String.format(ERROR_MESSAGE_TEMPLATE, entity, identifierType, identifierValue, identifierType);
     }
+
 }

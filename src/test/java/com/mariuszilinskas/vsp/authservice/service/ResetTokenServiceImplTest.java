@@ -31,7 +31,7 @@ public class ResetTokenServiceImplTest {
     private ResetTokenRepository resetTokenRepository;
 
     @InjectMocks
-    ResetTokenServiceImpl resetTokenService;
+    private ResetTokenServiceImpl resetTokenService;
 
     private final UUID userId = UUID.randomUUID();
     private final ResetToken resetToken = new ResetToken(userId);
@@ -129,13 +129,14 @@ public class ResetTokenServiceImplTest {
     void testDeleteResetToken_Success() {
         // Arrange
         doNothing().when(resetTokenRepository).deleteByUserId(userId);
-        when(resetTokenRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // Act
         resetTokenService.deleteUserResetTokens(userId);
 
         // Assert
         verify(resetTokenRepository, times(1)).deleteByUserId(userId);
+
+        when(resetTokenRepository.findByUserId(userId)).thenReturn(Optional.empty());
         assertFalse(resetTokenRepository.findByUserId(userId).isPresent());
     }
 
@@ -144,14 +145,12 @@ public class ResetTokenServiceImplTest {
         // Arrange
         UUID nonExistentUserId = UUID.randomUUID();
         doNothing().when(resetTokenRepository).deleteByUserId(nonExistentUserId);
-        when(resetTokenRepository.findByUserId(nonExistentUserId)).thenReturn(Optional.empty());
 
         // Act
         resetTokenService.deleteUserResetTokens(nonExistentUserId);
 
         // Assert
         verify(resetTokenRepository, times(1)).deleteByUserId(nonExistentUserId);
-        assertFalse(resetTokenRepository.findByUserId(nonExistentUserId).isPresent());
     }
 
     // ------------------------------------

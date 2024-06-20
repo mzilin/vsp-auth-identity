@@ -56,8 +56,8 @@ public class JwtServiceImpl implements JwtService {
                     .setSubject(authDetails.userId().toString())
                     .setIssuedAt(new Date())
                     .setExpiration(createExpirationDate(AuthUtils.ACCESS_TOKEN_EXPIRATION_MILLIS))
-                    .claim("roles", authDetails.roles())
-                    .claim("authorities", authDetails.authorities())
+                    .claim("roles", convertListToString(authDetails.roles()))
+                    .claim("authorities", convertListToString(authDetails.authorities()))
                     .signWith(getAccessTokenSecret())
                     .compact();
         } catch (JwtException ex) {
@@ -73,8 +73,6 @@ public class JwtServiceImpl implements JwtService {
                     .setIssuedAt(new Date())
                     .setExpiration(createExpirationDate(AuthUtils.REFRESH_TOKEN_EXPIRATION_MILLIS))
                     .claim("tokenId", tokenId.toString())
-                    .claim("roles", authDetails.roles())
-                    .claim("authorities", authDetails.authorities())
                     .signWith(getRefreshTokenSecret())
                     .compact();
         } catch (JwtException ex) {
@@ -84,6 +82,12 @@ public class JwtServiceImpl implements JwtService {
 
     private static Date createExpirationDate(long expirationTime) {
         return new Date((new Date()).getTime() + expirationTime);
+    }
+
+    private <T> List<String> convertListToString(List<T> list) {
+        return list.stream()
+                .map(Object::toString)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -203,23 +207,6 @@ public class JwtServiceImpl implements JwtService {
         return claimsResolver.apply(claims);
     }
 
-    @Override
-    public AuthDetails extractAuthDetails(String token, String tokenName) {
-        try {
-            Claims claims = extractAllClaims(token, tokenName);
-            String subject = claims.getSubject();
-            if (subject == null) {
-                throw new JwtTokenValidationException();
-            }
-            UUID userId = UUID.fromString(subject);
-            List<String> roles = safelyExtractListFromClaims(claims, "roles");
-            List<String> authorities = safelyExtractListFromClaims(claims, "authorities");
-            return new AuthDetails(userId, roles, authorities);
-        } catch (IllegalArgumentException e) {
-            throw new JwtTokenValidationException();
-        }
-    }
-
     private Claims extractAllClaims(String token, String tokenName) {
         return parseToken(token, tokenName).getBody();
     }
@@ -248,17 +235,6 @@ public class JwtServiceImpl implements JwtService {
 
     private SecretKey getRefreshTokenSecret() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshTokenSecret));
-    }
-
-    private List<String> safelyExtractListFromClaims(Map<String, Object> claims, String claimKey) {
-        Object claimValue = claims.get(claimKey);
-        if (claimValue instanceof List<?> rawList) {
-            return rawList.stream()
-                    .filter(obj -> obj instanceof String)
-                    .map(obj -> (String) obj)
-                    .collect(Collectors.toList());
-        }
-        return Collections.emptyList();
     }
 
 }

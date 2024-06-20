@@ -19,4 +19,5 @@ public class TokenGenerationService {
     public String generateResetToken() {
         return RandomStringUtils.randomAlphanumeric(20).toLowerCase();
     }
+
 }

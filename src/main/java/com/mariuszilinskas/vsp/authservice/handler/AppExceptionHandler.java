@@ -21,9 +21,9 @@ import java.util.Map;
  * @author Marius Zilinskas
  */
 @RestControllerAdvice
-public class AuthExceptionHandler {
+public class AppExceptionHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthExceptionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(AppExceptionHandler.class);
 
     // ----------------- Request Validations ----------------------
 
@@ -84,6 +84,11 @@ public class AuthExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(UserStatusAccessException.class)
+    public ResponseEntity<ErrorResponse> handleUserAccessException(UserStatusAccessException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(PasscodeExpiredException.class)
     public ResponseEntity<ErrorResponse> handlePasscodeExpiredException(PasscodeExpiredException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
@@ -123,4 +128,5 @@ public class AuthExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(message, status.value(), status.getReasonPhrase());
         return new ResponseEntity<>(errorResponse, status);
     }
+
 }

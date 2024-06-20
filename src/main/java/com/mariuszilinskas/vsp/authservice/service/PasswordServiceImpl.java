@@ -8,6 +8,7 @@ import com.mariuszilinskas.vsp.authservice.exception.*;
 import com.mariuszilinskas.vsp.authservice.model.Password;
 import com.mariuszilinskas.vsp.authservice.model.ResetToken;
 import com.mariuszilinskas.vsp.authservice.repository.PasswordRepository;
+import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -28,7 +29,6 @@ import java.util.UUID;
 public class PasswordServiceImpl implements PasswordService {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordServiceImpl.class);
-
     private final UserService userService;
     private final PasswordRepository passwordRepository;
     private final ResetTokenService resetTokenService;
@@ -62,7 +62,9 @@ public class PasswordServiceImpl implements PasswordService {
     public void forgotPassword(ForgotPasswordRequest request) {
         logger.info("Setting Password Reset Token for User [email: '{}']", request.email());
 
-        AuthDetails authDetails = userService.getUserAuthDetails(request.email());
+        AuthDetails authDetails = userService.getUserAuthDetailsWithEmail(request.email());
+        AuthUtils.checkUserSuspended(authDetails.status());
+
         String token = resetTokenService.createResetToken(authDetails.userId());
 
         // TODO: RabbitMQ - Send Reset Password Email + TEST

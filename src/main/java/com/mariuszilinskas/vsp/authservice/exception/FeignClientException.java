@@ -8,4 +8,5 @@ public class FeignClientException extends RuntimeException {
         super(String.format("Feign Exception when getting auth details for email '%s': Status %s, Body %s",
                 email, ex.status(), ex.contentUTF8()));
     }
+
 }

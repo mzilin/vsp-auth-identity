@@ -4,6 +4,8 @@ import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
+import com.mariuszilinskas.vsp.authservice.enums.UserRole;
+import com.mariuszilinskas.vsp.authservice.enums.UserStatus;
 import com.mariuszilinskas.vsp.authservice.exception.*;
 import com.mariuszilinskas.vsp.authservice.model.Password;
 import com.mariuszilinskas.vsp.authservice.model.ResetToken;
@@ -43,9 +45,10 @@ public class PasswordServiceImplTest {
     private PasswordRepository passwordRepository;
 
     @InjectMocks
-    PasswordServiceImpl passwordService;
+    private PasswordServiceImpl passwordService;
 
     private final UUID userId = UUID.randomUUID();
+    private final String email = "user@email.com";
     private final String token = RandomStringUtils.randomAlphanumeric(20).toLowerCase();
     private final Password password = new Password(userId);
     private final ResetToken resetToken = new ResetToken(userId);
@@ -137,34 +140,48 @@ public class PasswordServiceImplTest {
     @Test
     void testForgotPassword_Success() {
         // Arrange
-        String email = "user@email.com";
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest(email);
-        AuthDetails authDetails = new AuthDetails(userId, List.of("USER"), List.of());
+        AuthDetails authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.ACTIVE);
 
-        when(userService.getUserAuthDetails(email)).thenReturn(authDetails);
+        when(userService.getUserAuthDetailsWithEmail(email)).thenReturn(authDetails);
         when(resetTokenService.createResetToken(userId)).thenReturn(resetToken.getToken());
 
         // Act
         passwordService.forgotPassword(forgotPasswordRequest);
 
         // Assert
-        verify(userService, times(1)).getUserAuthDetails(email);
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(email);
         verify(resetTokenService, times(1)).createResetToken(userId);
     }
 
     @Test
     void testForgotPassword_FailsToFindUser() {
         // Arrange
-        String email = "user@email.com";
         ForgotPasswordRequest request = new ForgotPasswordRequest(email);
 
-        doThrow(EmailVerificationException.class).when(userService).getUserAuthDetails(email);
+        doThrow(EmailVerificationException.class).when(userService).getUserAuthDetailsWithEmail(email);
 
         // Act & Assert
         assertThrows(EmailVerificationException.class, () -> passwordService.forgotPassword(request));
 
         // Assert
-        verify(userService, times(1)).getUserAuthDetails(email);
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(email);
+        verify(resetTokenService, never()).createResetToken(any(UUID.class));
+    }
+
+    @Test
+    void testForgotPassword_SuspendedUser() {
+        // Arrange
+        ForgotPasswordRequest request = new ForgotPasswordRequest(email);
+        AuthDetails authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.SUSPENDED);
+
+        when(userService.getUserAuthDetailsWithEmail(email)).thenReturn(authDetails);
+
+        // Act & Assert
+        assertThrows(UserStatusAccessException.class, () -> passwordService.forgotPassword(request));
+
+        // Assert
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(email);
         verify(resetTokenService, never()).createResetToken(any(UUID.class));
     }
 

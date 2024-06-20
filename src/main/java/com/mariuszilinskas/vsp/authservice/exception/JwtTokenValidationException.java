@@ -11,4 +11,5 @@ public class JwtTokenValidationException extends RuntimeException {
     public JwtTokenValidationException() {
         super("Invalid JWT Token");
     }
+
 }

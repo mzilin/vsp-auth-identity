@@ -26,7 +26,7 @@ public class DataDeletionServiceImplTest {
     private RefreshTokenService refreshTokenService;
 
     @InjectMocks
-    DataDeletionServiceImpl userAuthDataService;
+    private DataDeletionServiceImpl userAuthDataService;
 
     private final UUID userId = UUID.randomUUID();
 

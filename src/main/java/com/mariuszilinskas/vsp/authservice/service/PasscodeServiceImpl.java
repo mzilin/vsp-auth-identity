@@ -29,7 +29,6 @@ import java.util.UUID;
 public class PasscodeServiceImpl implements PasscodeService {
 
     private static final Logger logger = LoggerFactory.getLogger(PasscodeServiceImpl.class);
-
     private final UserFeignClient userFeignClient;
     private final PasscodeRepository passcodeRepository;
     private final TokenGenerationService tokenGenerationService;
@@ -113,4 +112,5 @@ public class PasscodeServiceImpl implements PasscodeService {
         logger.info("Deleting Expired Passcodes");
         passcodeRepository.deleteAllByExpiryDateBefore(Instant.now());
     }
+
 }

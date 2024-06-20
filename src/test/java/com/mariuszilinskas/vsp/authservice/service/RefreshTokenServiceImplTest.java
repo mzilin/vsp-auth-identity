@@ -103,6 +103,9 @@ public class RefreshTokenServiceImplTest {
 
         // Assert
         verify(refreshTokenRepository, times(1)).deleteById(tokenId);
+
+        when(refreshTokenRepository.findById(tokenId)).thenReturn(Optional.empty());
+        assertFalse(refreshTokenRepository.findById(tokenId).isPresent());
     }
 
     // ------------------------------------

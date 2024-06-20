@@ -23,6 +23,7 @@ public class ResetToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @Column(name = "user_id", nullable = false)
@@ -38,4 +39,5 @@ public class ResetToken {
     public ResetToken(UUID userId) {
         this.userId = userId;
     }
+
 }

@@ -23,6 +23,7 @@ public class Password {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @Column(name = "user_id", nullable = false)
@@ -41,4 +42,5 @@ public class Password {
     public Password(UUID userId) {
         this.userId = userId;
     }
+
 }
