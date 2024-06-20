@@ -1,10 +1,13 @@
 package com.mariuszilinskas.vsp.authservice;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
+import com.mariuszilinskas.vsp.authservice.config.FeignConfig;
+import com.mariuszilinskas.vsp.authservice.config.RabbitMQConfig;
 import com.mariuszilinskas.vsp.authservice.controller.AuthController;
 import com.mariuszilinskas.vsp.authservice.controller.PasscodeController;
 import com.mariuszilinskas.vsp.authservice.controller.PasswordController;
 import com.mariuszilinskas.vsp.authservice.controller.DataDeletionController;
+import com.mariuszilinskas.vsp.authservice.producer.RabbitMQProducer;
 import com.mariuszilinskas.vsp.authservice.repository.PasscodeRepository;
 import com.mariuszilinskas.vsp.authservice.repository.PasswordRepository;
 import com.mariuszilinskas.vsp.authservice.repository.RefreshTokenRepository;
@@ -87,6 +90,15 @@ class AuthServiceApplicationTests {
 
     @Autowired
     private UserFeignClient userFeignClient;
+
+    @Autowired
+    private FeignConfig feignConfig;
+
+    @Autowired
+    private RabbitMQConfig rabbitMQConfig;
+
+    @Autowired
+    private RabbitMQProducer rabbitMQProducer;
 
     // --------------------------------------------------------------
 
@@ -195,6 +207,21 @@ class AuthServiceApplicationTests {
     @Test
     void userFeignClientBeanLoads() {
         assertNotNull(userFeignClient, "User Feign Client should have been auto-wired by Spring Context");
+    }
+
+    @Test
+    void feignConfigBeanLoads() {
+        assertNotNull(feignConfig, "Feign Config should have been auto-wired by Spring Context");
+    }
+
+    @Test
+    void rabbitMQConfigBeanLoads() {
+        assertNotNull(rabbitMQConfig, "RabbitMQ Config should have been auto-wired by Spring Context");
+    }
+
+    @Test
+    void rabbitMQProducerBeanLoads() {
+        assertNotNull(rabbitMQProducer, "RabbitMQ Producer should have been auto-wired by Spring Context");
     }
 
 }
