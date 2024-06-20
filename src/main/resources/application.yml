@@ -28,6 +28,11 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+  rabbitmq:
+    host: ${RMQ_HOST}
+    port: ${RMQ_PORT}
+    username: ${RMQ_USERNAME}
+    password: ${RABBIT_MQ_PASSWORD}
 
 # Eureka configuration
 eureka:
@@ -38,6 +43,12 @@ eureka:
       defaultZone: ${EUREKA_CLIENT_DEFAULT_ZONE}
   instance:
     preferIpAddress: true
+
+# RabbitMQ settings
+rabbitmq:
+  exchange: ${RMQ_EXCHANGE}
+  routing-keys:
+    platform-emails: ${RMQ_PLATFORM_EMAILS_RK}
 
 # Management properties
 management:
