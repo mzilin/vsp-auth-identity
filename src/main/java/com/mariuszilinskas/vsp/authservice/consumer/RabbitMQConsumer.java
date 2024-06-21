@@ -20,7 +20,7 @@ public class RabbitMQConsumer {
     private final DataDeletionService dataDeletionService;
 
     @RabbitListener(queues = "${rabbitmq.queues.create-passcode}")
-    public void consumeCreatePasscodeMessage(ResetPasscodeRequest request) {
+    public void consumeResetPasscodeMessage(ResetPasscodeRequest request) {
         logger.info("Received request to create user passcode: {}", request);
         passcodeService.resetPasscode(request);
     }
