@@ -1,6 +1,6 @@
 package com.mariuszilinskas.vsp.authservice.producer;
 
-import com.mariuszilinskas.vsp.authservice.dto.VerifyEmailRequest;
+import com.mariuszilinskas.vsp.authservice.dto.VerificationEmailRequest;
 import com.mariuszilinskas.vsp.authservice.dto.WelcomeEmailRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class RabbitMQProducer {
     @Value("${rabbitmq.routing-keys.platform-emails}")
     private String platformEmailsRoutingKey;
 
-    public void sendVerificationEmailMessage(VerifyEmailRequest request) {
+    public void sendVerificationEmailMessage(VerificationEmailRequest request) {
         logger.info("Sending Verification Email message: {}", request);
         rabbitTemplate.convertAndSend(exchange, platformEmailsRoutingKey, request);
     }
