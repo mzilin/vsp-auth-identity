@@ -3,6 +3,7 @@ package com.mariuszilinskas.vsp.authservice.controller;
 import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
+import com.mariuszilinskas.vsp.authservice.dto.VerifyPasswordRequest;
 import com.mariuszilinskas.vsp.authservice.service.PasswordService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class PasswordController {
 
     @PostMapping("/verify")
     public ResponseEntity<Void> verifyPassword(
-            @Valid @RequestBody CredentialsRequest request
+            @Valid @RequestBody VerifyPasswordRequest request
     ){
         passwordService.verifyPassword(request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
