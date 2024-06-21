@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     public void createPasswordAndSetPasscode(CredentialsRequest request) {
         logger.info("Creating Credentials for User [userId: '{}']", request.userId());
         passwordService.createNewPassword(request);
-        passcodeService.resetPasscode(new ResetPasscodeRequest(request.userId(), request.email()));
+        passcodeService.resetPasscode(request.userId());
     }
 
     @Override

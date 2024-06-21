@@ -69,19 +69,17 @@ public class AuthServiceImplTest {
     @Test
     void testCreatePasswordAndSetPasscode_NewUserCredentials() {
         // Arrange
-        String email = "user@email.com";
-        var credentialsRequest = new CredentialsRequest(userId, email, "Password1!");
-        var passcodeRequest = new ResetPasscodeRequest(userId, email);
+        var credentialsRequest = new CredentialsRequest(userId, "Password1!");
 
         doNothing().when(passwordService).createNewPassword(credentialsRequest);
-        doNothing().when(passcodeService).resetPasscode(passcodeRequest);
+        doNothing().when(passcodeService).resetPasscode(userId);
 
         // Act
         authService.createPasswordAndSetPasscode(credentialsRequest);
 
         // Assert
         verify(passwordService, times(1)).createNewPassword(credentialsRequest);
-        verify(passcodeService, times(1)).resetPasscode(passcodeRequest);
+        verify(passcodeService, times(1)).resetPasscode(userId);
     }
 
     // ------------------------------------
