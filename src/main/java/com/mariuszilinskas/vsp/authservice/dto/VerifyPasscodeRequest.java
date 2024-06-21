@@ -5,8 +5,12 @@ import jakarta.validation.constraints.Size;
 
 public record VerifyPasscodeRequest(
 
-        @NotBlank(message = "pinCode cannot be blank")
+        @NotBlank(message = "passcode cannot be blank")
         @Size(min = 6, max = 6, message = "passcode must be 6 characters")
         String passcode
 
-) {}
+) {
+        public VerifyPasscodeRequest {
+                if (passcode != null) passcode = passcode.trim().toUpperCase();
+        }
+}
