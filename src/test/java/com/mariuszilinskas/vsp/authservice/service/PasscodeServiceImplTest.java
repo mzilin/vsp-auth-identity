@@ -48,6 +48,8 @@ public class PasscodeServiceImplTest {
     private PasscodeServiceImpl passcodeService;
 
     private final UUID userId = UUID.randomUUID();
+    String firstName = "firstName";
+    private final String email = "user@email.com";
     private final Passcode passcode = new Passcode(userId);
     private final FeignException feignException = TestUtils.createFeignException();
 
@@ -64,8 +66,6 @@ public class PasscodeServiceImplTest {
     @Test
     void testVerifyPasscode_Success() {
         // Arrange
-        String firstName = "firstName";
-        String email = "user@email.com";
         var passcodeRequest = new VerifyPasscodeRequest(passcode.getPasscode());
         var emailRequest = new WelcomeEmailRequest(firstName, email);
         var userResponse = new UserResponse(firstName, "lastName", email);
@@ -136,7 +136,7 @@ public class PasscodeServiceImplTest {
     @Test
     void testVerifyPasscode_FailsToVerifyEmail() {
         // Arrange
-        var userResponse = new UserResponse("firstName", "lastName", "user@email.com");
+        var userResponse = new UserResponse(firstName, "lastName", email);
         VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
 
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
@@ -180,8 +180,6 @@ public class PasscodeServiceImplTest {
     @Test
     void testResetPasscode_Success() {
         // Arrange
-        String firstName = "firstName";
-        String email = "user@email.com";
         String newPasscode = "abc123";
         passcode.setPasscode(newPasscode);
         ArgumentCaptor<Passcode> passcodeCaptor = ArgumentCaptor.forClass(Passcode.class);
