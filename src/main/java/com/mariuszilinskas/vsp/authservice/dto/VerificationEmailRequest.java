@@ -1,6 +1,6 @@
 package com.mariuszilinskas.vsp.authservice.dto;
 
-public record VerifyEmailRequest(
+public record VerificationEmailRequest(
         String firstName,
         String email,
         String passcode
