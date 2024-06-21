@@ -1,5 +1,7 @@
 package com.mariuszilinskas.vsp.authservice.producer;
 
+import com.mariuszilinskas.vsp.authservice.dto.VerifyEmailRequest;
+import com.mariuszilinskas.vsp.authservice.dto.WelcomeEmailRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +20,16 @@ public class EmailMessageProducer {
     private String exchange;
 
     @Value("${rabbitmq.routing-keys.platform-emails}")
-    private String platformEmailsRoutingKey;
+    private String routingKey;
 
-//    public void sendVerificationEmailMessage(Object request) {
-//        logger.info("Sending message to create default user profile: {}", request);
-//        rabbitTemplate.convertAndSend(exchange, platformEmailsRoutingKey, request);
-//    }
+    public void sendVerificationEmailMessage(VerifyEmailRequest request) {
+        logger.info("Sending Verification Email message: {}", request);
+        rabbitTemplate.convertAndSend(exchange, routingKey, request);
+    }
+
+    public void sendWelcomeEmailMessage(WelcomeEmailRequest request) {
+        logger.info("Sending Welcome Email message: {}", request);
+        rabbitTemplate.convertAndSend(exchange, routingKey, request);
+    }
 
 }
