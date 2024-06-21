@@ -7,7 +7,7 @@ import com.mariuszilinskas.vsp.authservice.controller.AuthController;
 import com.mariuszilinskas.vsp.authservice.controller.PasscodeController;
 import com.mariuszilinskas.vsp.authservice.controller.PasswordController;
 import com.mariuszilinskas.vsp.authservice.controller.DataDeletionController;
-import com.mariuszilinskas.vsp.authservice.producer.RabbitMQProducer;
+import com.mariuszilinskas.vsp.authservice.producer.EmailMessageProducer;
 import com.mariuszilinskas.vsp.authservice.repository.PasscodeRepository;
 import com.mariuszilinskas.vsp.authservice.repository.PasswordRepository;
 import com.mariuszilinskas.vsp.authservice.repository.RefreshTokenRepository;
@@ -98,7 +98,7 @@ class AuthServiceApplicationTests {
     private RabbitMQConfig rabbitMQConfig;
 
     @Autowired
-    private RabbitMQProducer rabbitMQProducer;
+    private EmailMessageProducer emailMessageProducer;
 
     // --------------------------------------------------------------
 
@@ -220,8 +220,8 @@ class AuthServiceApplicationTests {
     }
 
     @Test
-    void rabbitMQProducerBeanLoads() {
-        assertNotNull(rabbitMQProducer, "RabbitMQ Producer should have been auto-wired by Spring Context");
+    void emailMessageProducerBeanLoads() {
+        assertNotNull(emailMessageProducer, "Email Message Producer should have been auto-wired by Spring Context");
     }
 
 }
