@@ -1,5 +1,6 @@
 package com.mariuszilinskas.vsp.authservice.producer;
 
+import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordEmailRequest;
 import com.mariuszilinskas.vsp.authservice.dto.VerificationEmailRequest;
 import com.mariuszilinskas.vsp.authservice.dto.WelcomeEmailRequest;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,11 @@ public class RabbitMQProducer {
 
     public void sendWelcomeEmailMessage(WelcomeEmailRequest request) {
         logger.info("Sending Welcome Email message: {}", request);
+        rabbitTemplate.convertAndSend(exchange, platformEmailsRoutingKey, request);
+    }
+
+    public void sendResetPasswordEmailMessage(ResetPasswordEmailRequest request) {
+        logger.info("Sending Reset Password Email message: {}", request);
         rabbitTemplate.convertAndSend(exchange, platformEmailsRoutingKey, request);
     }
 
