@@ -1,6 +1,7 @@
 package com.mariuszilinskas.vsp.authservice.consumer;
 
 import com.mariuszilinskas.vsp.authservice.service.DataDeletionService;
+import com.mariuszilinskas.vsp.authservice.service.PasscodeService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +12,17 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserDataDeletionConsumer {
+public class RabbitMQConsumer {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserDataDeletionConsumer.class);
+    private static final Logger logger = LoggerFactory.getLogger(RabbitMQConsumer.class);
+    private final PasscodeService passcodeService;
     private final DataDeletionService dataDeletionService;
+
+    @RabbitListener(queues = "${rabbitmq.queues.create-passcode}")
+    public void consumeResetPasscodeMessage(UUID userId) {
+        logger.info("Received request to create passcode for User [userId: {}]", userId);
+        passcodeService.resetPasscode(userId);
+    }
 
     @RabbitListener(queues = "${rabbitmq.queues.delete-user-data}")
     public void consumeDeleteUserDataMessage(UUID userId) {
