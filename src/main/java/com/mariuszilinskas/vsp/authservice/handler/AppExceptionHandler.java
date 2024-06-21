@@ -114,6 +114,11 @@ public class AppExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(UserRetrievalException.class)
+    public ResponseEntity<ErrorResponse> handleUserRetrievalException(UserRetrievalException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     // -----------------------------------------------------------
 
     /**
