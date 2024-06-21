@@ -10,6 +10,9 @@ public record CredentialsRequest(
         @NotNull(message = "userId cannot be null")
         UUID userId,
 
+        @NotBlank(message = "email cannot be blank")
+        String email,
+
         @NotBlank(message = "password cannot be blank")
         String password
 
