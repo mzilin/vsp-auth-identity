@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class RabbitMQProducer {
+public class EmailMessageProducer {
 
-    private static final Logger logger = LoggerFactory.getLogger(RabbitMQProducer.class);
+    private static final Logger logger = LoggerFactory.getLogger(EmailMessageProducer.class);
     private final RabbitTemplate rabbitTemplate;
 
     @Value("${rabbitmq.exchange}")
