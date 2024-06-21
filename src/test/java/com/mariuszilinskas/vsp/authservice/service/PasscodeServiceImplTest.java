@@ -1,11 +1,16 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
+import com.mariuszilinskas.vsp.authservice.dto.UserResponse;
+import com.mariuszilinskas.vsp.authservice.dto.VerificationEmailRequest;
 import com.mariuszilinskas.vsp.authservice.dto.VerifyPasscodeRequest;
+import com.mariuszilinskas.vsp.authservice.dto.WelcomeEmailRequest;
 import com.mariuszilinskas.vsp.authservice.exception.EmailVerificationException;
 import com.mariuszilinskas.vsp.authservice.exception.PasscodeExpiredException;
 import com.mariuszilinskas.vsp.authservice.exception.PasscodeValidationException;
+import com.mariuszilinskas.vsp.authservice.exception.UserRetrievalException;
 import com.mariuszilinskas.vsp.authservice.model.Passcode;
+import com.mariuszilinskas.vsp.authservice.producer.RabbitMQProducer;
 import com.mariuszilinskas.vsp.authservice.repository.PasscodeRepository;
 import com.mariuszilinskas.vsp.authservice.util.TestUtils;
 import feign.FeignException;
@@ -36,6 +41,9 @@ public class PasscodeServiceImplTest {
     @Mock
     private UserFeignClient userFeignClient;
 
+    @Mock
+    private RabbitMQProducer rabbitMQProducer;
+
     @InjectMocks
     private PasscodeServiceImpl passcodeService;
 
@@ -56,9 +64,14 @@ public class PasscodeServiceImplTest {
     @Test
     void testVerifyPasscode_Success() {
         // Arrange
-        VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
+        String firstName = "firstName";
+        String email = "user@email.com";
+        var passcodeRequest = new VerifyPasscodeRequest(passcode.getPasscode());
+        var emailRequest = new WelcomeEmailRequest(firstName, email);
+        var userResponse = new UserResponse(firstName, "lastName", email);
 
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+        when(userFeignClient.getUser(userId)).thenReturn(userResponse);
         when(userFeignClient.verifyUserEmail(userId)).thenReturn(null);
 
         doAnswer(invocation -> {
@@ -66,13 +79,17 @@ public class PasscodeServiceImplTest {
             return null;
         }).when(passcodeRepository).deleteByUserId(userId);
 
+        doNothing().when(rabbitMQProducer).sendWelcomeEmailMessage(emailRequest);
+
         // Act
-        passcodeService.verifyPasscode(userId, request);
+        passcodeService.verifyPasscode(userId, passcodeRequest);
 
         // Assert
         verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(userFeignClient, times(1)).getUser(userId);
         verify(userFeignClient, times(1)).verifyUserEmail(userId);
         verify(passcodeRepository, times(1)).deleteByUserId(userId);
+        verify(rabbitMQProducer, times(1)).sendWelcomeEmailMessage(emailRequest);
 
         assertFalse(passcodeRepository.findByUserId(userId).isPresent());
     }
@@ -90,8 +107,11 @@ public class PasscodeServiceImplTest {
 
         // Assert
         verify(passcodeRepository, times(1)).findByUserId(userId);
+
+        verify(userFeignClient, never()).getUser(any(UUID.class));
         verify(userFeignClient, never()).verifyUserEmail(any(UUID.class));
         verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
+        verify(rabbitMQProducer, never()).sendWelcomeEmailMessage(any(WelcomeEmailRequest.class));
     }
 
     @Test
@@ -106,16 +126,21 @@ public class PasscodeServiceImplTest {
 
         // Assert
         verify(passcodeRepository, times(1)).findByUserId(userId);
+
+        verify(userFeignClient, never()).getUser(any(UUID.class));
         verify(userFeignClient, never()).verifyUserEmail(any(UUID.class));
         verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
+        verify(rabbitMQProducer, never()).sendWelcomeEmailMessage(any(WelcomeEmailRequest.class));
     }
 
     @Test
     void testVerifyPasscode_FailsToVerifyEmail() {
         // Arrange
+        var userResponse = new UserResponse("firstName", "lastName", "user@email.com");
         VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
 
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+        when(userFeignClient.getUser(userId)).thenReturn(userResponse);
         doThrow(feignException).when(userFeignClient).verifyUserEmail(userId);
 
         // Act & Assert
@@ -123,8 +148,31 @@ public class PasscodeServiceImplTest {
 
         // Assert
         verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(userFeignClient, times(1)).getUser(userId);
         verify(userFeignClient, times(1)).verifyUserEmail(userId);
+
         verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
+        verify(rabbitMQProducer, never()).sendWelcomeEmailMessage(any(WelcomeEmailRequest.class));
+    }
+
+    @Test
+    void testVerifyPasscode_FeignException() {
+        // Arrange
+        VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
+
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+        doThrow(feignException).when(userFeignClient).getUser(userId);
+
+        // Act & Assert
+        assertThrows(UserRetrievalException.class, () -> passcodeService.verifyPasscode(userId, request));
+
+        // Assert
+        verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(userFeignClient, times(1)).getUser(userId);
+
+        verify(userFeignClient, never()).verifyUserEmail(any(UUID.class));
+        verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
+        verify(rabbitMQProducer, never()).sendWelcomeEmailMessage(any(WelcomeEmailRequest.class));
     }
 
     // ------------------------------------
@@ -132,24 +180,50 @@ public class PasscodeServiceImplTest {
     @Test
     void testResetPasscode_Success() {
         // Arrange
+        String firstName = "firstName";
+        String email = "user@email.com";
         String newPasscode = "abc123";
         passcode.setPasscode(newPasscode);
         ArgumentCaptor<Passcode> passcodeCaptor = ArgumentCaptor.forClass(Passcode.class);
+        var userResponse = new UserResponse(firstName, "lastName", email);
+        var emailRequest = new VerificationEmailRequest(firstName, email, newPasscode);
 
+        when(userFeignClient.getUser(userId)).thenReturn(userResponse);
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
         when(tokenGenerationService.generatePasscode()).thenReturn(newPasscode);
         when(passcodeRepository.save(passcodeCaptor.capture())).thenReturn(passcode);
+        doNothing().when(rabbitMQProducer).sendVerificationEmailMessage(emailRequest);
 
         // Act
         passcodeService.resetPasscode(userId);
 
         // Assert
+        verify(userFeignClient, times(1)).getUser(userId);
         verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(tokenGenerationService, times(1)).generatePasscode();
         verify(passcodeRepository, times(1)).save(passcodeCaptor.capture());
+        verify(rabbitMQProducer, times(1)).sendVerificationEmailMessage(emailRequest);
 
         Passcode savedPasscode = passcodeCaptor.getValue();
         assertEquals(userId, savedPasscode.getUserId());
         assertEquals(newPasscode, savedPasscode.getPasscode());
+    }
+
+    @Test
+    void testResetPasscode_FeignException() {
+        // Arrange
+        doThrow(feignException).when(userFeignClient).getUser(userId);
+
+        // Act & Assert
+        assertThrows(UserRetrievalException.class, () -> passcodeService.resetPasscode(userId));
+
+        // Assert
+        verify(userFeignClient, times(1)).getUser(userId);
+
+        verify(passcodeRepository, never()).findByUserId(any(UUID.class));
+        verify(tokenGenerationService, never()).generatePasscode();
+        verify(passcodeRepository, never()).save(any(Passcode.class));
+        verify(rabbitMQProducer, never()).sendVerificationEmailMessage(any(VerificationEmailRequest.class));
     }
 
     // ------------------------------------
