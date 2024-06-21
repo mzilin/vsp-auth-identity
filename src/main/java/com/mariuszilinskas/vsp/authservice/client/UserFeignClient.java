@@ -1,6 +1,7 @@
 package com.mariuszilinskas.vsp.authservice.client;
 
 import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
+import com.mariuszilinskas.vsp.authservice.dto.UserResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,5 +19,8 @@ public interface UserFeignClient {
 
     @GetMapping(value = "/user/auth-details/by-userid", consumes = "application/json")
     AuthDetails getUserAuthDetailsByUserId(@RequestParam UUID userId);
+
+    @GetMapping(value = "/user/{userId}", consumes = "application/json")
+    UserResponse getUser(@PathVariable("userId") UUID userId);
 
 }
