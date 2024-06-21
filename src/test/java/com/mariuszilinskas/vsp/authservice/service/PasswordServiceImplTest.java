@@ -1,16 +1,17 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
-import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
-import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
-import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
-import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
+import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
+import com.mariuszilinskas.vsp.authservice.dto.*;
 import com.mariuszilinskas.vsp.authservice.enums.UserRole;
 import com.mariuszilinskas.vsp.authservice.enums.UserStatus;
 import com.mariuszilinskas.vsp.authservice.exception.*;
 import com.mariuszilinskas.vsp.authservice.model.Password;
 import com.mariuszilinskas.vsp.authservice.model.ResetToken;
+import com.mariuszilinskas.vsp.authservice.producer.RabbitMQProducer;
 import com.mariuszilinskas.vsp.authservice.repository.PasswordRepository;
 import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
+import com.mariuszilinskas.vsp.authservice.util.TestUtils;
+import feign.FeignException;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,12 @@ public class PasswordServiceImplTest {
     @Mock
     private PasswordRepository passwordRepository;
 
+    @Mock
+    private UserFeignClient userFeignClient;
+
+    @Mock
+    private RabbitMQProducer rabbitMQProducer;
+
     @InjectMocks
     private PasswordServiceImpl passwordService;
 
@@ -52,6 +59,7 @@ public class PasswordServiceImplTest {
     private final String token = RandomStringUtils.randomAlphanumeric(20).toLowerCase();
     private final Password password = new Password(userId);
     private final ResetToken resetToken = new ResetToken(userId);
+    private final FeignException feignException = TestUtils.createFeignException();
 
     // ------------------------------------
 
@@ -92,7 +100,7 @@ public class PasswordServiceImplTest {
     @Test
     void testVerifyPassword_Success() {
         // Arrange
-        CredentialsRequest request = new CredentialsRequest(userId, "Password1!");
+        var request = new VerifyPasswordRequest(userId, "Password1!");
 
         when(passwordRepository.findByUserId(userId)).thenReturn(Optional.of(password));
         when(passwordEncoder.matches(request.password(), password.getPasswordHash())).thenReturn(true);
@@ -108,7 +116,7 @@ public class PasswordServiceImplTest {
     @Test
     void testVerifyPassword_IncorrectPassword() {
         // Arrange
-        CredentialsRequest request = new CredentialsRequest(userId, "IncorrectPassword1!");
+        var request = new VerifyPasswordRequest(userId, "IncorrectPassword1!");
 
         when(passwordRepository.findByUserId(userId)).thenReturn(Optional.of(password));
         when(passwordEncoder.matches(request.password(), password.getPasswordHash())).thenReturn(false);
@@ -124,7 +132,7 @@ public class PasswordServiceImplTest {
     @Test
     void testVerifyPassword_PasswordNotFound() {
         // Arrange
-        CredentialsRequest request = new CredentialsRequest(userId, "Password1!");
+        var request = new VerifyPasswordRequest(userId, "Password1!");
         when(passwordRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // Act & Assert
@@ -142,16 +150,22 @@ public class PasswordServiceImplTest {
         // Arrange
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest(email);
         AuthDetails authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.ACTIVE);
+        var userResponse = new UserResponse("firstName", "lastName", email);
+        var emailRequest = new ResetPasswordEmailRequest("firstName", email, resetToken.getToken());
 
         when(userService.getUserAuthDetailsWithEmail(email)).thenReturn(authDetails);
+        when(userFeignClient.getUser(userId)).thenReturn(userResponse);
         when(resetTokenService.createResetToken(userId)).thenReturn(resetToken.getToken());
+        doNothing().when(rabbitMQProducer).sendResetPasswordEmailMessage(emailRequest);
 
         // Act
         passwordService.forgotPassword(forgotPasswordRequest);
 
         // Assert
         verify(userService, times(1)).getUserAuthDetailsWithEmail(email);
+        verify(userFeignClient, times(1)).getUser(userId);
         verify(resetTokenService, times(1)).createResetToken(userId);
+        verify(rabbitMQProducer, times(1)).sendResetPasswordEmailMessage(emailRequest);
     }
 
     @Test
@@ -166,7 +180,10 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(userService, times(1)).getUserAuthDetailsWithEmail(email);
+
+        verify(userFeignClient, never()).getUser(any(UUID.class));
         verify(resetTokenService, never()).createResetToken(any(UUID.class));
+        verify(rabbitMQProducer, never()).sendResetPasswordEmailMessage(any(ResetPasswordEmailRequest.class));
     }
 
     @Test
@@ -182,7 +199,30 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(userService, times(1)).getUserAuthDetailsWithEmail(email);
+
+        verify(userFeignClient, never()).getUser(userId);
         verify(resetTokenService, never()).createResetToken(any(UUID.class));
+        verify(rabbitMQProducer, never()).sendResetPasswordEmailMessage(any(ResetPasswordEmailRequest.class));
+    }
+
+    @Test
+    void testForgotPassword_FeignException() {
+        // Arrange
+        ForgotPasswordRequest request = new ForgotPasswordRequest(email);
+        AuthDetails authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.ACTIVE);
+
+        when(userService.getUserAuthDetailsWithEmail(email)).thenReturn(authDetails);
+        doThrow(feignException).when(userFeignClient).getUser(userId);
+
+        // Act & Assert
+        assertThrows(UserRetrievalException.class, () -> passwordService.forgotPassword(request));
+
+        // Assert
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(email);
+        verify(userFeignClient, times(1)).getUser(any(UUID.class));
+
+        verify(resetTokenService, never()).createResetToken(any(UUID.class));
+        verify(rabbitMQProducer, never()).sendResetPasswordEmailMessage(any(ResetPasswordEmailRequest.class));
     }
 
     // ------------------------------------

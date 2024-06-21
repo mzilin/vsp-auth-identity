@@ -1,14 +1,14 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
-import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
-import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
-import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
-import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
+import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
+import com.mariuszilinskas.vsp.authservice.dto.*;
 import com.mariuszilinskas.vsp.authservice.exception.*;
 import com.mariuszilinskas.vsp.authservice.model.Password;
 import com.mariuszilinskas.vsp.authservice.model.ResetToken;
+import com.mariuszilinskas.vsp.authservice.producer.RabbitMQProducer;
 import com.mariuszilinskas.vsp.authservice.repository.PasswordRepository;
 import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
+import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -33,6 +33,8 @@ public class PasswordServiceImpl implements PasswordService {
     private final PasswordRepository passwordRepository;
     private final ResetTokenService resetTokenService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final RabbitMQProducer rabbitMQProducer;
+    private final UserFeignClient userFeignClient;
 
     @Override
     @Transactional
@@ -42,7 +44,7 @@ public class PasswordServiceImpl implements PasswordService {
     }
 
     @Override
-    public void verifyPassword(CredentialsRequest request) {
+    public void verifyPassword(VerifyPasswordRequest request) {
         logger.info("Verifying Password for User [userId: '{}']", request.userId());
         Password storedPassword = getPasswordByUserId(request.userId());
         validatePassword(request.password(), storedPassword);
@@ -65,9 +67,21 @@ public class PasswordServiceImpl implements PasswordService {
         AuthDetails authDetails = userService.getUserAuthDetailsWithEmail(request.email());
         AuthUtils.checkUserSuspended(authDetails.status());
 
+        UserResponse response = getUserInfo(authDetails.userId());
         String token = resetTokenService.createResetToken(authDetails.userId());
 
-        // TODO: RabbitMQ - Send Reset Password Email + TEST
+        var emailRequest = new ResetPasswordEmailRequest(response.firstName(), response.email(), token);
+        rabbitMQProducer.sendResetPasswordEmailMessage(emailRequest);
+    }
+
+    private UserResponse getUserInfo(UUID userId) {
+        try {
+            return userFeignClient.getUser(userId);
+        } catch (FeignException ex) {
+            logger.error("Feign Exception when getting User info: User ID '{}', Status {}, Body {}",
+                    userId, ex.status(), ex.contentUTF8());
+            throw new UserRetrievalException();
+        }
     }
 
     @Override

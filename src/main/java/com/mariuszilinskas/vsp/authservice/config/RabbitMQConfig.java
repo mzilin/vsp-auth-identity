@@ -15,9 +15,63 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.exchange}")
     private String exchange;
 
+    @Value("${rabbitmq.queues.profile-setup}")
+    private String profileSetupQueue;
+
+    @Value("${rabbitmq.routing-keys.profile-setup}")
+    private String profileSetupRoutingKey;
+
+    @Value("${rabbitmq.queues.reset-passcode}")
+    private String createPasscodeQueue;
+
+    @Value("${rabbitmq.routing-keys.reset-passcode}")
+    private String createPasscodeRoutingKey;
+
+    @Value("${rabbitmq.queues.delete-user-data}")
+    private String deleteUserDataQueue;
+
+    @Value("${rabbitmq.routing-keys.delete-user-data}")
+    private String deleteUserDataRoutingKey;
+
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(exchange);
+    }
+
+    @Bean
+    public Queue profileSetupQueue() {
+        return new Queue(profileSetupQueue, true);
+    }
+
+    @Bean
+    public Binding profileSetupBinding() {
+        return BindingBuilder.bind(profileSetupQueue())
+                .to(exchange())
+                .with(profileSetupRoutingKey);
+    }
+
+    @Bean
+    public Queue createPasscodeQueue() {
+        return new Queue(createPasscodeQueue, true);
+    }
+
+    @Bean
+    public Binding createPasscodeBinding() {
+        return BindingBuilder.bind(createPasscodeQueue())
+                .to(exchange())
+                .with(createPasscodeRoutingKey);
+    }
+
+    @Bean
+    public Queue deleteUserDataQueue() {
+        return new Queue(deleteUserDataQueue, true);
+    }
+
+    @Bean
+    public Binding deleteUserDataBinding() {
+        return BindingBuilder.bind(deleteUserDataQueue())
+                .to(exchange())
+                .with(deleteUserDataRoutingKey);
     }
 
     @Bean

@@ -47,8 +47,13 @@ eureka:
 # RabbitMQ settings
 rabbitmq:
   exchange: ${RMQ_EXCHANGE}
+  queues:
+    reset-passcode: ${RMQ_RESET_PASSCODE_Q}
+    delete-user-data: ${RMQ_DELETE_USER_DATA_Q}
   routing-keys:
     platform-emails: ${RMQ_PLATFORM_EMAILS_RK}
+    reset-passcode: ${RMQ_RESET_PASSCODE_RK}
+    delete-user-data: ${RMQ_DELETE_USER_DATA_RK}
 
 # Management properties
 management:

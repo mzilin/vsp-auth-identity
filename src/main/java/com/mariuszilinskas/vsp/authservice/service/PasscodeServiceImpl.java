@@ -1,12 +1,10 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
-import com.mariuszilinskas.vsp.authservice.dto.VerifyPasscodeRequest;
-import com.mariuszilinskas.vsp.authservice.exception.EmailVerificationException;
-import com.mariuszilinskas.vsp.authservice.exception.PasscodeExpiredException;
-import com.mariuszilinskas.vsp.authservice.exception.PasscodeValidationException;
-import com.mariuszilinskas.vsp.authservice.exception.ResourceNotFoundException;
+import com.mariuszilinskas.vsp.authservice.dto.*;
+import com.mariuszilinskas.vsp.authservice.exception.*;
 import com.mariuszilinskas.vsp.authservice.model.Passcode;
+import com.mariuszilinskas.vsp.authservice.producer.RabbitMQProducer;
 import com.mariuszilinskas.vsp.authservice.repository.PasscodeRepository;
 import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
 import feign.FeignException;
@@ -32,6 +30,7 @@ public class PasscodeServiceImpl implements PasscodeService {
     private final UserFeignClient userFeignClient;
     private final PasscodeRepository passcodeRepository;
     private final TokenGenerationService tokenGenerationService;
+    private final RabbitMQProducer rabbitMQProducer;
 
     @Override
     @Transactional
@@ -39,18 +38,18 @@ public class PasscodeServiceImpl implements PasscodeService {
         logger.info("Verifying Passcode for User [userId: '{}']", userId);
 
         Passcode passcode = findPasscodeByUserId(userId);
-        if (isPasscodeExpired(passcode)) {
+        if (isPasscodeExpired(passcode))
             throw new PasscodeExpiredException();
-        }
 
-        if (!isPasscodeCorrect(passcode, request.passcode())) {
+        if (!isPasscodeCorrect(passcode, request.passcode()))
             throw new PasscodeValidationException();
-        }
 
+        UserResponse response = getUserInfo(userId);
         verifyUserEmail(userId);
         deleteUserPasscodes(userId);
 
-        // TODO: RabbitMQ - Send Welcome Email + TEST
+        var emailRequest = new WelcomeEmailRequest(response.firstName(), response.email());
+        rabbitMQProducer.sendWelcomeEmailMessage(emailRequest);
     }
 
     private boolean isPasscodeExpired(Passcode passcode) {
@@ -76,9 +75,11 @@ public class PasscodeServiceImpl implements PasscodeService {
     public void resetPasscode(UUID userId) {
         logger.info("Resetting Passcode for User [userId: '{}']", userId);
 
+        UserResponse response = getUserInfo(userId);
         String passcode = createPasscode(userId);
 
-        // TODO: RabbitMQ - Send verification Email + TEST
+        var emailRequest = new VerificationEmailRequest(response.firstName(), response.email(), passcode);
+        rabbitMQProducer.sendVerificationEmailMessage(emailRequest);
     }
 
     private String createPasscode(UUID userId) {
@@ -97,6 +98,16 @@ public class PasscodeServiceImpl implements PasscodeService {
     private Passcode findPasscodeByUserId(UUID userId) {
         return passcodeRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(Passcode.class, "userId", userId));
+    }
+
+    private UserResponse getUserInfo(UUID userId) {
+        try {
+            return userFeignClient.getUser(userId);
+        } catch (FeignException ex) {
+            logger.error("Feign Exception when getting User info: User ID '{}', Status {}, Body {}",
+                    userId, ex.status(), ex.contentUTF8());
+            throw new UserRetrievalException();
+        }
     }
 
     @Override

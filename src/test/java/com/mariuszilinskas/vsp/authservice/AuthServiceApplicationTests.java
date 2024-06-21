@@ -3,6 +3,7 @@ package com.mariuszilinskas.vsp.authservice;
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
 import com.mariuszilinskas.vsp.authservice.config.FeignConfig;
 import com.mariuszilinskas.vsp.authservice.config.RabbitMQConfig;
+import com.mariuszilinskas.vsp.authservice.consumer.RabbitMQConsumer;
 import com.mariuszilinskas.vsp.authservice.controller.AuthController;
 import com.mariuszilinskas.vsp.authservice.controller.PasscodeController;
 import com.mariuszilinskas.vsp.authservice.controller.PasswordController;
@@ -99,6 +100,9 @@ class AuthServiceApplicationTests {
 
     @Autowired
     private RabbitMQProducer rabbitMQProducer;
+
+    @Autowired
+    private RabbitMQConsumer rabbitMQConsumer;
 
     // --------------------------------------------------------------
 
@@ -222,6 +226,11 @@ class AuthServiceApplicationTests {
     @Test
     void rabbitMQProducerBeanLoads() {
         assertNotNull(rabbitMQProducer, "RabbitMQ Producer should have been auto-wired by Spring Context");
+    }
+
+    @Test
+    void rabbitMQConsumerBeanLoads() {
+        assertNotNull(rabbitMQConsumer, "RabbitMQ Consumer should have been auto-wired by Spring Context");
     }
 
 }

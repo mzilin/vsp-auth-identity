@@ -1,8 +1,6 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
-import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
-import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
-import com.mariuszilinskas.vsp.authservice.dto.LoginRequest;
+import com.mariuszilinskas.vsp.authservice.dto.*;
 import com.mariuszilinskas.vsp.authservice.exception.*;
 import com.mariuszilinskas.vsp.authservice.util.AuthUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
 
         AuthDetails authDetails = fetchAuthDetails(() -> userService.getUserAuthDetailsWithEmail(request.email()));
         AuthUtils.checkUserSuspended(authDetails.status());
-        passwordService.verifyPassword(new CredentialsRequest(authDetails.userId(), request.password()));
+        passwordService.verifyPassword(new VerifyPasswordRequest(authDetails.userId(), request.password()));
 
         generateAndSetAuthTokens(response, authDetails);
     }

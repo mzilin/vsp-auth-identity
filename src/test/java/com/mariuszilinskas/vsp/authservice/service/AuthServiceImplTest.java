@@ -1,8 +1,6 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
-import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
-import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
-import com.mariuszilinskas.vsp.authservice.dto.LoginRequest;
+import com.mariuszilinskas.vsp.authservice.dto.*;
 import com.mariuszilinskas.vsp.authservice.enums.UserRole;
 import com.mariuszilinskas.vsp.authservice.enums.UserStatus;
 import com.mariuszilinskas.vsp.authservice.exception.*;
@@ -71,16 +69,16 @@ public class AuthServiceImplTest {
     @Test
     void testCreatePasswordAndSetPasscode_NewUserCredentials() {
         // Arrange
-        CredentialsRequest request = new CredentialsRequest(userId, "Password1!");
+        var credentialsRequest = new CredentialsRequest(userId, "Password1!");
 
-        doNothing().when(passwordService).createNewPassword(request);
+        doNothing().when(passwordService).createNewPassword(credentialsRequest);
         doNothing().when(passcodeService).resetPasscode(userId);
 
         // Act
-        authService.createPasswordAndSetPasscode(request);
+        authService.createPasswordAndSetPasscode(credentialsRequest);
 
         // Assert
-        verify(passwordService, times(1)).createNewPassword(request);
+        verify(passwordService, times(1)).createNewPassword(credentialsRequest);
         verify(passcodeService, times(1)).resetPasscode(userId);
     }
 
@@ -89,11 +87,13 @@ public class AuthServiceImplTest {
     @Test
     void testAuthenticateUser_Success() {
         // Arrange
-        LoginRequest loginRequest = new LoginRequest("some@email.com", "Password1!");
-        CredentialsRequest credentialsRequest = new CredentialsRequest(userId, loginRequest.password());
+        String email = "user@email.com";
+        String password = "Password1!";
+        LoginRequest loginRequest = new LoginRequest(email, password);
+        var passwordRequest = new VerifyPasswordRequest(userId, password);
 
-        when(userService.getUserAuthDetailsWithEmail(loginRequest.email())).thenReturn(authDetails);
-        doNothing().when(passwordService).verifyPassword(credentialsRequest);
+        when(userService.getUserAuthDetailsWithEmail(email)).thenReturn(authDetails);
+        doNothing().when(passwordService).verifyPassword(passwordRequest);
         doNothing().when(refreshTokenService).createNewRefreshToken(any(UUID.class), eq(userId));
         doNothing().when(jwtService).setAuthCookies(eq(mockResponse), eq(authDetails), any(UUID.class));
 
@@ -101,8 +101,8 @@ public class AuthServiceImplTest {
         authService.authenticateUser(loginRequest, mockResponse);
 
         // Assert
-        verify(userService, times(1)).getUserAuthDetailsWithEmail(loginRequest.email());
-        verify(passwordService, times(1)).verifyPassword(credentialsRequest);
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(email);
+        verify(passwordService, times(1)).verifyPassword(passwordRequest);
         verify(refreshTokenService, times(1)).createNewRefreshToken(any(UUID.class), eq(userId));
         verify(jwtService, times(1)).setAuthCookies(eq(mockResponse), eq(authDetails), any(UUID.class));
     }
@@ -110,11 +110,13 @@ public class AuthServiceImplTest {
     @Test
     void testAuthenticateUser_InvalidCredentials() {
         // Arrange
-        LoginRequest loginRequest = new LoginRequest("test@email.com", "wrongPassword");
-        CredentialsRequest credentialsRequest = new CredentialsRequest(userId, loginRequest.password());
+        String email = "user@email.com";
+        String password = "wrongPassword";
+        LoginRequest loginRequest = new LoginRequest(email, password);
+        var passwordRequest = new VerifyPasswordRequest(userId, password);
 
-        when(userService.getUserAuthDetailsWithEmail(loginRequest.email())).thenReturn(authDetails);
-        doThrow(CredentialsValidationException.class).when(passwordService).verifyPassword(credentialsRequest);
+        when(userService.getUserAuthDetailsWithEmail(email)).thenReturn(authDetails);
+        doThrow(CredentialsValidationException.class).when(passwordService).verifyPassword(passwordRequest);
 
         // Act & Assert
         assertThrows(CredentialsValidationException.class, () -> {
@@ -122,8 +124,8 @@ public class AuthServiceImplTest {
         });
 
         // Assert
-        verify(userService, times(1)).getUserAuthDetailsWithEmail(loginRequest.email());
-        verify(passwordService, times(1)).verifyPassword(credentialsRequest);
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(email);
+        verify(passwordService, times(1)).verifyPassword(passwordRequest);
 
         verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), eq(userId));
         verify(jwtService, never()).setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
@@ -132,8 +134,9 @@ public class AuthServiceImplTest {
     @Test
     void testAuthenticateUser_NonExistingUser() {
         // Arrange
-        LoginRequest loginRequest = new LoginRequest("some@email.com", "Password1!");
-        when(userService.getUserAuthDetailsWithEmail(loginRequest.email())).thenThrow(ResourceNotFoundException.class);
+        String email = "user@email.com";
+        LoginRequest loginRequest = new LoginRequest(email, "Password1!");
+        when(userService.getUserAuthDetailsWithEmail(email)).thenThrow(ResourceNotFoundException.class);
 
         // Act & Assert
         assertThrows(CredentialsValidationException.class, () -> {
@@ -141,9 +144,9 @@ public class AuthServiceImplTest {
         });
 
         // Assert
-        verify(userService, times(1)).getUserAuthDetailsWithEmail(loginRequest.email());
+        verify(userService, times(1)).getUserAuthDetailsWithEmail(email);
 
-        verify(passwordService, never()).verifyPassword(any(CredentialsRequest.class));
+        verify(passwordService, never()).verifyPassword(any(VerifyPasswordRequest.class));
         verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), any(UUID.class));
         verify(jwtService, never()).setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
     }
@@ -151,10 +154,11 @@ public class AuthServiceImplTest {
     @Test
     void testAuthenticateUser_UserSuspended() {
         // Arrange
-        LoginRequest loginRequest = new LoginRequest("some@email.com", "Password1!");
+        String email = "user@email.com";
+        LoginRequest loginRequest = new LoginRequest(email, "Password1!");
         authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.SUSPENDED);
 
-        when(userService.getUserAuthDetailsWithEmail(loginRequest.email())).thenReturn(authDetails);
+        when(userService.getUserAuthDetailsWithEmail(email)).thenReturn(authDetails);
 
         // Act & Assert
         assertThrows(UserStatusAccessException.class, () -> {
@@ -163,7 +167,7 @@ public class AuthServiceImplTest {
 
         // Assert
         verify(userService, times(1)).getUserAuthDetailsWithEmail(loginRequest.email());
-        verify(passwordService, never()).verifyPassword(any(CredentialsRequest.class));
+        verify(passwordService, never()).verifyPassword(any(VerifyPasswordRequest.class));
         verify(refreshTokenService, never()).createNewRefreshToken(any(UUID.class), any(UUID.class));
         verify(jwtService, never())
                 .setAuthCookies(any(HttpServletResponse.class), any(AuthDetails.class), any(UUID.class));
