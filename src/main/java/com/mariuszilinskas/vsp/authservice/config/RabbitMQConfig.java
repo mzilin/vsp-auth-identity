@@ -21,10 +21,10 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.routing-keys.profile-setup}")
     private String profileSetupRoutingKey;
 
-    @Value("${rabbitmq.queues.create-passcode}")
+    @Value("${rabbitmq.queues.reset-passcode}")
     private String createPasscodeQueue;
 
-    @Value("${rabbitmq.routing-keys.create-passcode}")
+    @Value("${rabbitmq.routing-keys.reset-passcode}")
     private String createPasscodeRoutingKey;
 
     @Value("${rabbitmq.queues.delete-user-data}")
