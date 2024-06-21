@@ -1,6 +1,5 @@
 package com.mariuszilinskas.vsp.authservice.controller;
 
-import com.mariuszilinskas.vsp.authservice.dto.ResetPasscodeRequest;
 import com.mariuszilinskas.vsp.authservice.dto.VerifyPasscodeRequest;
 import com.mariuszilinskas.vsp.authservice.service.PasscodeService;
 import jakarta.validation.Valid;
@@ -33,10 +32,8 @@ public class PasscodeController {
     }
 
     @PutMapping("/{userId}/reset")
-    public ResponseEntity<Void> resetPasscode(
-            @Valid @RequestBody ResetPasscodeRequest request
-    ) {
-        passcodeService.resetPasscode(request);
+    public ResponseEntity<Void> resetPasscode(@PathVariable UUID userId) {
+        passcodeService.resetPasscode(userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
