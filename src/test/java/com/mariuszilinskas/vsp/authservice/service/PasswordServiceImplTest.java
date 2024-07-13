@@ -151,7 +151,7 @@ public class PasswordServiceImplTest {
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest(email);
         AuthDetails authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.ACTIVE);
         var userResponse = new UserResponse("firstName", "lastName", email);
-        var emailRequest = new ResetPasswordEmailRequest("firstName", email, resetToken.getToken());
+        var emailRequest = new ResetPasswordEmailRequest("reset", "firstName", email, resetToken.getToken());
 
         when(userService.getUserAuthDetailsWithEmail(email)).thenReturn(authDetails);
         when(userFeignClient.getUser(userId)).thenReturn(userResponse);

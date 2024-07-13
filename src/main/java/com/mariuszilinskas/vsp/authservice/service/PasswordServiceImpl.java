@@ -70,7 +70,7 @@ public class PasswordServiceImpl implements PasswordService {
         UserResponse response = getUserInfo(authDetails.userId());
         String token = resetTokenService.createResetToken(authDetails.userId());
 
-        var emailRequest = new ResetPasswordEmailRequest(response.firstName(), response.email(), token);
+        var emailRequest = new ResetPasswordEmailRequest("reset", response.firstName(), response.email(), token);
         rabbitMQProducer.sendResetPasswordEmailMessage(emailRequest);
     }
 

@@ -48,7 +48,7 @@ public class PasscodeServiceImpl implements PasscodeService {
         verifyUserEmail(userId);
         deleteUserPasscodes(userId);
 
-        var emailRequest = new WelcomeEmailRequest(response.firstName(), response.email());
+        var emailRequest = new WelcomeEmailRequest("welcome", response.firstName(), response.email());
         rabbitMQProducer.sendWelcomeEmailMessage(emailRequest);
     }
 
@@ -78,7 +78,7 @@ public class PasscodeServiceImpl implements PasscodeService {
         UserResponse response = getUserInfo(userId);
         String passcode = createPasscode(userId);
 
-        var emailRequest = new VerificationEmailRequest(response.firstName(), response.email(), passcode);
+        var emailRequest = new VerificationEmailRequest("verify", response.firstName(), response.email(), passcode);
         rabbitMQProducer.sendVerificationEmailMessage(emailRequest);
     }
 
