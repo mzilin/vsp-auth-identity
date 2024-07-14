@@ -67,7 +67,7 @@ public class PasscodeServiceImplTest {
     void testVerifyPasscode_Success() {
         // Arrange
         var passcodeRequest = new VerifyPasscodeRequest(passcode.getPasscode());
-        var emailRequest = new WelcomeEmailRequest(firstName, email);
+        var emailRequest = new WelcomeEmailRequest("welcome", firstName, email);
         var userResponse = new UserResponse(firstName, "lastName", email);
 
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
@@ -184,7 +184,7 @@ public class PasscodeServiceImplTest {
         passcode.setPasscode(newPasscode);
         ArgumentCaptor<Passcode> passcodeCaptor = ArgumentCaptor.forClass(Passcode.class);
         var userResponse = new UserResponse(firstName, "lastName", email);
-        var emailRequest = new VerificationEmailRequest(firstName, email, newPasscode);
+        var emailRequest = new VerificationEmailRequest("verify", firstName, email, newPasscode);
 
         when(userFeignClient.getUser(userId)).thenReturn(userResponse);
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
