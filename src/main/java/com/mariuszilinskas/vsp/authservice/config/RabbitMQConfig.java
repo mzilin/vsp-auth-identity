@@ -15,6 +15,12 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.exchange}")
     private String exchange;
 
+    @Value("${rabbitmq.queues.platform-emails}")
+    private String platformEmailsQueue;
+
+    @Value("${rabbitmq.routing-keys.platform-emails}")
+    private String platformEmailsRoutingKey;
+
     @Value("${rabbitmq.queues.profile-setup}")
     private String profileSetupQueue;
 
@@ -22,10 +28,10 @@ public class RabbitMQConfig {
     private String profileSetupRoutingKey;
 
     @Value("${rabbitmq.queues.reset-passcode}")
-    private String createPasscodeQueue;
+    private String resetPasscodeQueue;
 
     @Value("${rabbitmq.routing-keys.reset-passcode}")
-    private String createPasscodeRoutingKey;
+    private String resetPasscodeRoutingKey;
 
     @Value("${rabbitmq.queues.delete-user-data}")
     private String deleteUserDataQueue;
@@ -36,6 +42,18 @@ public class RabbitMQConfig {
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(exchange);
+    }
+
+    @Bean
+    public Queue platformEmailsQueue() {
+        return new Queue(platformEmailsQueue, true);
+    }
+
+    @Bean
+    public Binding createPlatformEmailsBinding() {
+        return BindingBuilder.bind(platformEmailsQueue())
+                .to(exchange())
+                .with(platformEmailsRoutingKey);
     }
 
     @Bean
@@ -51,15 +69,15 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue createPasscodeQueue() {
-        return new Queue(createPasscodeQueue, true);
+    public Queue resetPasscodeQueue() {
+        return new Queue(resetPasscodeQueue, true);
     }
 
     @Bean
-    public Binding createPasscodeBinding() {
-        return BindingBuilder.bind(createPasscodeQueue())
+    public Binding resetPasscodeBinding() {
+        return BindingBuilder.bind(resetPasscodeQueue())
                 .to(exchange())
-                .with(createPasscodeRoutingKey);
+                .with(resetPasscodeRoutingKey);
     }
 
     @Bean

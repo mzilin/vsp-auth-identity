@@ -32,7 +32,7 @@ spring:
     host: ${RMQ_HOST}
     port: ${RMQ_PORT}
     username: ${RMQ_USERNAME}
-    password: ${RABBIT_MQ_PASSWORD}
+    password: ${RMQ_PASSWORD}
 
 # Eureka configuration
 eureka:
@@ -48,10 +48,13 @@ eureka:
 rabbitmq:
   exchange: ${RMQ_EXCHANGE}
   queues:
+    platform-emails: ${RMQ_PLATFORM_EMAILS_Q}
+    profile-setup: ${RMQ_PROFILE_SETUP_Q}
     reset-passcode: ${RMQ_RESET_PASSCODE_Q}
     delete-user-data: ${RMQ_DELETE_USER_DATA_Q}
   routing-keys:
     platform-emails: ${RMQ_PLATFORM_EMAILS_RK}
+    profile-setup: ${RMQ_PROFILE_SETUP_RK}
     reset-passcode: ${RMQ_RESET_PASSCODE_RK}
     delete-user-data: ${RMQ_DELETE_USER_DATA_RK}
 
