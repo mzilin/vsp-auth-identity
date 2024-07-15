@@ -1,9 +1,6 @@
 package com.mariuszilinskas.vsp.authservice.service;
 
-import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
-import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
-import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
-import com.mariuszilinskas.vsp.authservice.dto.VerifyPasswordRequest;
+import com.mariuszilinskas.vsp.authservice.dto.*;
 
 import java.util.UUID;
 
@@ -16,6 +13,8 @@ public interface PasswordService {
     void forgotPassword(ForgotPasswordRequest request);
 
     void resetPassword(ResetPasswordRequest request);
+
+    void updatePassword(UUID userId, UpdatePasswordRequest request);
 
     void deleteUserPasswords(UUID userId);
 
