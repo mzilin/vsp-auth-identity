@@ -1,15 +1,14 @@
 package com.mariuszilinskas.vsp.authservice.controller;
 
-import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
-import com.mariuszilinskas.vsp.authservice.dto.ForgotPasswordRequest;
-import com.mariuszilinskas.vsp.authservice.dto.ResetPasswordRequest;
-import com.mariuszilinskas.vsp.authservice.dto.VerifyPasswordRequest;
+import com.mariuszilinskas.vsp.authservice.dto.*;
 import com.mariuszilinskas.vsp.authservice.service.PasswordService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 /**
  * This class provides REST APIs for handling CRUD operations related to user passwords.
@@ -23,7 +22,7 @@ public class PasswordController {
 
     private final PasswordService passwordService;
 
-    @PostMapping("/verify")
+    @PutMapping("/verify")
     public ResponseEntity<Void> verifyPassword(
             @Valid @RequestBody VerifyPasswordRequest request
     ){
@@ -31,7 +30,7 @@ public class PasswordController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping("/forgot")
+    @PutMapping("/forgot")
     public ResponseEntity<Void> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request
     ){
@@ -44,6 +43,15 @@ public class PasswordController {
             @Valid @RequestBody ResetPasswordRequest request
     ){
         passwordService.resetPassword(request);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping("/{userId}/update")
+    public ResponseEntity<Void> updatePassword(
+            @PathVariable UUID userId,
+            @Valid @RequestBody UpdatePasswordRequest request
+    ){
+        passwordService.updatePassword(userId, request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
