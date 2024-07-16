@@ -27,9 +27,6 @@ import static org.mockito.Mockito.*;
 public class AuthServiceImplTest {
 
     @Mock
-    private PasscodeService passcodeService;
-
-    @Mock
     private PasswordService passwordService;
 
     @Mock
@@ -62,24 +59,6 @@ public class AuthServiceImplTest {
         mockRequest = new MockHttpServletRequest();
         mockResponse = new MockHttpServletResponse();
         authDetails = new AuthDetails(userId, List.of(UserRole.USER), List.of(), UserStatus.ACTIVE);
-    }
-
-    // ------------------------------------
-
-    @Test
-    void testCreatePasswordAndSetPasscode_NewUserCredentials() {
-        // Arrange
-        var credentialsRequest = new CredentialsRequest(userId, "Password1!");
-
-        doNothing().when(passwordService).createNewPassword(credentialsRequest);
-        doNothing().when(passcodeService).resetPasscode(userId);
-
-        // Act
-        authService.createPasswordAndSetPasscode(credentialsRequest);
-
-        // Assert
-        verify(passwordService, times(1)).createNewPassword(credentialsRequest);
-        verify(passcodeService, times(1)).resetPasscode(userId);
     }
 
     // ------------------------------------
