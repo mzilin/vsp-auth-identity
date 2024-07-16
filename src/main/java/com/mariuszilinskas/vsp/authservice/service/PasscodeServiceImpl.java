@@ -44,11 +44,12 @@ public class PasscodeServiceImpl implements PasscodeService {
         if (!isPasscodeCorrect(passcode, request.passcode()))
             throw new PasscodeValidationException();
 
-        UserResponse response = getUserInfo(userId);
-        verifyUserEmail(userId);
-        deleteUserPasscodes(userId);
+        UserResponse user = getUserInfo(userId);
 
-        var emailRequest = new WelcomeEmailRequest("welcome", response.firstName(), response.email());
+        rabbitMQProducer.sendVerifyAccountMessage(userId);
+        var emailRequest = new WelcomeEmailRequest("welcome", user.firstName(), user.email());
+
+        deleteUserPasscodes(userId);
         rabbitMQProducer.sendWelcomeEmailMessage(emailRequest);
     }
 
@@ -58,16 +59,6 @@ public class PasscodeServiceImpl implements PasscodeService {
 
     private boolean isPasscodeCorrect(Passcode passcode, String givenPasscode) {
         return passcode.getPasscode().equals(givenPasscode);
-    }
-
-    private void verifyUserEmail(UUID userId) {
-        try {
-            userFeignClient.verifyUserEmail(userId);
-        } catch (FeignException ex) {
-            logger.error("Feign Exception when verifying User email: User ID '{}', Status {}, Body {}",
-                    userId, ex.status(), ex.contentUTF8());
-            throw new EmailVerificationException();
-        }
     }
 
     @Override
