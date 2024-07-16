@@ -49,12 +49,12 @@ rabbitmq:
   exchange: ${RMQ_EXCHANGE}
   queues:
     platform-emails: ${RMQ_PLATFORM_EMAILS_Q}
-    profile-setup: ${RMQ_PROFILE_SETUP_Q}
+    create-credentials: ${RMQ_CREATE_CREDENTIALS_Q}
     reset-passcode: ${RMQ_RESET_PASSCODE_Q}
     delete-user-data: ${RMQ_DELETE_USER_DATA_Q}
   routing-keys:
     platform-emails: ${RMQ_PLATFORM_EMAILS_RK}
-    profile-setup: ${RMQ_PROFILE_SETUP_RK}
+    create-credentials: ${RMQ_CREATE_CREDENTIALS_RK}
     reset-passcode: ${RMQ_RESET_PASSCODE_RK}
     delete-user-data: ${RMQ_DELETE_USER_DATA_RK}
 

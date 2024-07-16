@@ -21,11 +21,11 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.routing-keys.platform-emails}")
     private String platformEmailsRoutingKey;
 
-    @Value("${rabbitmq.queues.profile-setup}")
-    private String profileSetupQueue;
+    @Value("${rabbitmq.queues.create-credentials}")
+    private String createCredentialsQueue;
 
-    @Value("${rabbitmq.routing-keys.profile-setup}")
-    private String profileSetupRoutingKey;
+    @Value("${rabbitmq.routing-keys.create-credentials}")
+    private String createCredentialsRoutingKey;
 
     @Value("${rabbitmq.queues.reset-passcode}")
     private String resetPasscodeQueue;
@@ -57,15 +57,15 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue profileSetupQueue() {
-        return new Queue(profileSetupQueue, true);
+    public Queue createCredentialsQueue() {
+        return new Queue(createCredentialsQueue, true);
     }
 
     @Bean
-    public Binding profileSetupBinding() {
-        return BindingBuilder.bind(profileSetupQueue())
+    public Binding createCredentialsBinding() {
+        return BindingBuilder.bind(createCredentialsQueue())
                 .to(exchange())
-                .with(profileSetupRoutingKey);
+                .with(createCredentialsRoutingKey);
     }
 
     @Bean
