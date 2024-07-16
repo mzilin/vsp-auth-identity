@@ -72,17 +72,28 @@ public class PasscodeServiceImpl implements PasscodeService {
 
     @Override
     @Transactional
+    public void createPasscode(UUID userId, String firstName, String email) {
+        logger.info("Creating Passcode for User [userId: '{}']", userId);
+
+        String passcode = createNewPasscode(userId);
+
+        var emailRequest = new VerificationEmailRequest("verify", firstName, email, passcode);
+        rabbitMQProducer.sendVerificationEmailMessage(emailRequest);
+    }
+
+    @Override
+    @Transactional
     public void resetPasscode(UUID userId) {
         logger.info("Resetting Passcode for User [userId: '{}']", userId);
 
         UserResponse response = getUserInfo(userId);
-        String passcode = createPasscode(userId);
+        String passcode = createNewPasscode(userId);
 
         var emailRequest = new VerificationEmailRequest("verify", response.firstName(), response.email(), passcode);
         rabbitMQProducer.sendVerificationEmailMessage(emailRequest);
     }
 
-    private String createPasscode(UUID userId) {
+    private String createNewPasscode(UUID userId) {
         Passcode passcode = findOrCreatePasscode(userId);
         passcode.setPasscode(tokenGenerationService.generatePasscode());
         passcode.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINUTES_IN_MILLIS));

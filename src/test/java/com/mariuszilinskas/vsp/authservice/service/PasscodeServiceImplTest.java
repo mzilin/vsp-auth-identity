@@ -178,6 +178,55 @@ public class PasscodeServiceImplTest {
     // ------------------------------------
 
     @Test
+    void testCreatePasscode_Success() {
+        // Arrange
+        String newPasscode = "abc123";
+        passcode.setPasscode(newPasscode);
+        ArgumentCaptor<Passcode> passcodeCaptor = ArgumentCaptor.forClass(Passcode.class);
+        var userResponse = new UserResponse(firstName, "lastName", email);
+        var emailRequest = new VerificationEmailRequest("verify", firstName, email, newPasscode);
+
+        when(userFeignClient.getUser(userId)).thenReturn(userResponse);
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+        when(tokenGenerationService.generatePasscode()).thenReturn(newPasscode);
+        when(passcodeRepository.save(passcodeCaptor.capture())).thenReturn(passcode);
+        doNothing().when(rabbitMQProducer).sendVerificationEmailMessage(emailRequest);
+
+        // Act
+        passcodeService.createPasscode(userId, firstName, email);
+
+        // Assert
+        verify(userFeignClient, times(1)).getUser(userId);
+        verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(tokenGenerationService, times(1)).generatePasscode();
+        verify(passcodeRepository, times(1)).save(passcodeCaptor.capture());
+        verify(rabbitMQProducer, times(1)).sendVerificationEmailMessage(emailRequest);
+
+        Passcode savedPasscode = passcodeCaptor.getValue();
+        assertEquals(userId, savedPasscode.getUserId());
+        assertEquals(newPasscode, savedPasscode.getPasscode());
+    }
+
+    @Test
+    void testCreatePasscode_FeignException() {
+        // Arrange
+        doThrow(feignException).when(userFeignClient).getUser(userId);
+
+        // Act & Assert
+        assertThrows(UserRetrievalException.class, () -> passcodeService.createPasscode(userId, firstName, email));
+
+        // Assert
+        verify(userFeignClient, times(1)).getUser(userId);
+
+        verify(passcodeRepository, never()).findByUserId(any(UUID.class));
+        verify(tokenGenerationService, never()).generatePasscode();
+        verify(passcodeRepository, never()).save(any(Passcode.class));
+        verify(rabbitMQProducer, never()).sendVerificationEmailMessage(any(VerificationEmailRequest.class));
+    }
+
+    // ------------------------------------
+
+    @Test
     void testResetPasscode_Success() {
         // Arrange
         String newPasscode = "abc123";
