@@ -10,6 +10,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class RabbitMQProducer {
@@ -20,8 +22,16 @@ public class RabbitMQProducer {
     @Value("${rabbitmq.exchange}")
     private String exchange;
 
+    @Value("${rabbitmq.routing-keys.verify-account}")
+    private String verifyAccountRoutingKey;
+
     @Value("${rabbitmq.routing-keys.platform-emails}")
     private String platformEmailsRoutingKey;
+
+    public void sendVerifyAccountMessage(UUID userId) {
+        logger.info("Sending Verify Account message: [userId: {}]", userId);
+        rabbitTemplate.convertAndSend(exchange, verifyAccountRoutingKey, userId);
+    }
 
     public void sendVerificationEmailMessage(VerificationEmailRequest request) {
         logger.info("Sending Verification Email message: {}", request);

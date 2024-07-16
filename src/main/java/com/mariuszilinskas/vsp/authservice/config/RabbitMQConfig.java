@@ -15,12 +15,6 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.exchange}")
     private String exchange;
 
-    @Value("${rabbitmq.queues.platform-emails}")
-    private String platformEmailsQueue;
-
-    @Value("${rabbitmq.routing-keys.platform-emails}")
-    private String platformEmailsRoutingKey;
-
     @Value("${rabbitmq.queues.create-credentials}")
     private String createCredentialsQueue;
 
@@ -42,18 +36,6 @@ public class RabbitMQConfig {
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(exchange);
-    }
-
-    @Bean
-    public Queue platformEmailsQueue() {
-        return new Queue(platformEmailsQueue, true);
-    }
-
-    @Bean
-    public Binding createPlatformEmailsBinding() {
-        return BindingBuilder.bind(platformEmailsQueue())
-                .to(exchange())
-                .with(platformEmailsRoutingKey);
     }
 
     @Bean
