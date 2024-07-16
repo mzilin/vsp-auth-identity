@@ -77,7 +77,7 @@ public class PasswordServiceImplTest {
         // Arrange
         String newPassword = "Password1";
         ArgumentCaptor<Password> captor = ArgumentCaptor.forClass(Password.class);
-        CredentialsRequest request = new CredentialsRequest(userId, newPassword);
+        CredentialsRequest request = new CredentialsRequest(userId, "firstName", email, newPassword);
 
         when(passwordRepository.findByUserId(userId)).thenReturn(Optional.empty());
         when(passwordEncoder.encode(newPassword)).thenReturn(password.getPasswordHash());
