@@ -1,6 +1,5 @@
 package com.mariuszilinskas.vsp.authservice.controller;
 
-import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.dto.LoginRequest;
 import com.mariuszilinskas.vsp.authservice.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,17 +24,6 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthService authService;
-
-    /**
-     * POST /auth/credentials : Creates new user credentials.
-     */
-    @PostMapping("/credentials")
-    public ResponseEntity<Void> createPasswordAndSetPasscode(
-            @Valid @RequestBody CredentialsRequest request
-    ) {
-        authService.createPasswordAndSetPasscode(request);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
 
     /**
      * POST /auth/login : Authenticates a user.

@@ -50,15 +50,6 @@ public class PasswordServiceImpl implements PasswordService {
         validatePassword(request.password(), storedPassword);
     }
 
-    private Password getPasswordByUserId(UUID userId) {
-        return passwordRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(Password.class, "userId", userId));
-    }
-    private void validatePassword(String providedPassword, Password storedPassword) {
-        if (!passwordEncoder.matches(providedPassword, storedPassword.getPasswordHash()))
-            throw new CredentialsValidationException();
-    }
-
     @Override
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
@@ -116,6 +107,25 @@ public class PasswordServiceImpl implements PasswordService {
     private Password getOrCreateHashedPassword(UUID userId) {
         return passwordRepository.findByUserId(userId)
                 .orElse(new Password(userId));
+    }
+
+    @Override
+    @Transactional
+    public void updatePassword(UUID userId, UpdatePasswordRequest request) {
+        logger.info("Updating Password for User [userId: '{}']", userId);
+        Password password = getPasswordByUserId(userId);
+        validatePassword(request.currentPassword(), password);
+        setHashedPassword(password, request.newPassword());
+    }
+
+    private Password getPasswordByUserId(UUID userId) {
+        return passwordRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(Password.class, "userId", userId));
+    }
+
+    private void validatePassword(String providedPassword, Password storedPassword) {
+        if (!passwordEncoder.matches(providedPassword, storedPassword.getPasswordHash()))
+            throw new CredentialsValidationException();
     }
 
     private void setHashedPassword(Password password, String newPassword) {

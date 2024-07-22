@@ -25,18 +25,9 @@ public class AuthServiceImpl implements AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
     private final JwtService jwtService;
-    private final PasscodeService passcodeService;
     private final PasswordService passwordService;
     private final RefreshTokenService refreshTokenService;
     private final UserService userService;
-
-    @Override
-    @Transactional
-    public void createPasswordAndSetPasscode(CredentialsRequest request) {
-        logger.info("Creating Credentials for User [userId: '{}']", request.userId());
-        passwordService.createNewPassword(request);
-        passcodeService.resetPasscode(request.userId());
-    }
 
     @Override
     @Transactional

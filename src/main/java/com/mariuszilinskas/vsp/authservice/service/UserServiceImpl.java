@@ -2,7 +2,7 @@ package com.mariuszilinskas.vsp.authservice.service;
 
 import com.mariuszilinskas.vsp.authservice.client.UserFeignClient;
 import com.mariuszilinskas.vsp.authservice.dto.AuthDetails;
-import com.mariuszilinskas.vsp.authservice.exception.FeignClientException;
+import com.mariuszilinskas.vsp.authservice.exception.CredentialsValidationException;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
         try {
             return supplier.get();
         } catch (FeignException ex) {
-            throw new FeignClientException(identifier, ex);
+            throw new CredentialsValidationException();
         }
     }
 

@@ -5,7 +5,6 @@ import com.mariuszilinskas.vsp.authservice.dto.UserResponse;
 import com.mariuszilinskas.vsp.authservice.dto.VerificationEmailRequest;
 import com.mariuszilinskas.vsp.authservice.dto.VerifyPasscodeRequest;
 import com.mariuszilinskas.vsp.authservice.dto.WelcomeEmailRequest;
-import com.mariuszilinskas.vsp.authservice.exception.EmailVerificationException;
 import com.mariuszilinskas.vsp.authservice.exception.PasscodeExpiredException;
 import com.mariuszilinskas.vsp.authservice.exception.PasscodeValidationException;
 import com.mariuszilinskas.vsp.authservice.exception.UserRetrievalException;
@@ -72,7 +71,7 @@ public class PasscodeServiceImplTest {
 
         when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
         when(userFeignClient.getUser(userId)).thenReturn(userResponse);
-        when(userFeignClient.verifyUserEmail(userId)).thenReturn(null);
+        doNothing().when(rabbitMQProducer).sendVerifyAccountMessage(userId);
 
         doAnswer(invocation -> {
             when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.empty());
@@ -87,7 +86,7 @@ public class PasscodeServiceImplTest {
         // Assert
         verify(passcodeRepository, times(1)).findByUserId(userId);
         verify(userFeignClient, times(1)).getUser(userId);
-        verify(userFeignClient, times(1)).verifyUserEmail(userId);
+        verify(rabbitMQProducer, times(1)).sendVerifyAccountMessage(userId);
         verify(passcodeRepository, times(1)).deleteByUserId(userId);
         verify(rabbitMQProducer, times(1)).sendWelcomeEmailMessage(emailRequest);
 
@@ -109,7 +108,7 @@ public class PasscodeServiceImplTest {
         verify(passcodeRepository, times(1)).findByUserId(userId);
 
         verify(userFeignClient, never()).getUser(any(UUID.class));
-        verify(userFeignClient, never()).verifyUserEmail(any(UUID.class));
+        verify(rabbitMQProducer, never()).sendVerifyAccountMessage(any(UUID.class));
         verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
         verify(rabbitMQProducer, never()).sendWelcomeEmailMessage(any(WelcomeEmailRequest.class));
     }
@@ -128,29 +127,7 @@ public class PasscodeServiceImplTest {
         verify(passcodeRepository, times(1)).findByUserId(userId);
 
         verify(userFeignClient, never()).getUser(any(UUID.class));
-        verify(userFeignClient, never()).verifyUserEmail(any(UUID.class));
-        verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
-        verify(rabbitMQProducer, never()).sendWelcomeEmailMessage(any(WelcomeEmailRequest.class));
-    }
-
-    @Test
-    void testVerifyPasscode_FailsToVerifyEmail() {
-        // Arrange
-        var userResponse = new UserResponse(firstName, "lastName", email);
-        VerifyPasscodeRequest request = new VerifyPasscodeRequest(passcode.getPasscode());
-
-        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
-        when(userFeignClient.getUser(userId)).thenReturn(userResponse);
-        doThrow(feignException).when(userFeignClient).verifyUserEmail(userId);
-
-        // Act & Assert
-        assertThrows(EmailVerificationException.class, () -> passcodeService.verifyPasscode(userId, request));
-
-        // Assert
-        verify(passcodeRepository, times(1)).findByUserId(userId);
-        verify(userFeignClient, times(1)).getUser(userId);
-        verify(userFeignClient, times(1)).verifyUserEmail(userId);
-
+        verify(rabbitMQProducer, never()).sendVerifyAccountMessage(any(UUID.class));
         verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
         verify(rabbitMQProducer, never()).sendWelcomeEmailMessage(any(WelcomeEmailRequest.class));
     }
@@ -170,9 +147,38 @@ public class PasscodeServiceImplTest {
         verify(passcodeRepository, times(1)).findByUserId(userId);
         verify(userFeignClient, times(1)).getUser(userId);
 
-        verify(userFeignClient, never()).verifyUserEmail(any(UUID.class));
+        verify(rabbitMQProducer, never()).sendVerifyAccountMessage(any(UUID.class));
         verify(passcodeRepository, never()).deleteByUserId(any(UUID.class));
         verify(rabbitMQProducer, never()).sendWelcomeEmailMessage(any(WelcomeEmailRequest.class));
+    }
+
+    // ------------------------------------
+
+    @Test
+    void testCreatePasscode_Success() {
+        // Arrange
+        String newPasscode = "abc123";
+        passcode.setPasscode(newPasscode);
+        ArgumentCaptor<Passcode> passcodeCaptor = ArgumentCaptor.forClass(Passcode.class);
+        var emailRequest = new VerificationEmailRequest("verify", firstName, email, newPasscode);
+
+        when(passcodeRepository.findByUserId(userId)).thenReturn(Optional.of(passcode));
+        when(tokenGenerationService.generatePasscode()).thenReturn(newPasscode);
+        when(passcodeRepository.save(passcodeCaptor.capture())).thenReturn(passcode);
+        doNothing().when(rabbitMQProducer).sendVerificationEmailMessage(emailRequest);
+
+        // Act
+        passcodeService.createPasscode(userId, firstName, email);
+
+        // Assert
+        verify(passcodeRepository, times(1)).findByUserId(userId);
+        verify(tokenGenerationService, times(1)).generatePasscode();
+        verify(passcodeRepository, times(1)).save(passcodeCaptor.capture());
+        verify(rabbitMQProducer, times(1)).sendVerificationEmailMessage(emailRequest);
+
+        Passcode savedPasscode = passcodeCaptor.getValue();
+        assertEquals(userId, savedPasscode.getUserId());
+        assertEquals(newPasscode, savedPasscode.getPasscode());
     }
 
     // ------------------------------------

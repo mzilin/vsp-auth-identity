@@ -1,7 +1,9 @@
 package com.mariuszilinskas.vsp.authservice.consumer;
 
+import com.mariuszilinskas.vsp.authservice.dto.CredentialsRequest;
 import com.mariuszilinskas.vsp.authservice.service.DataDeletionService;
 import com.mariuszilinskas.vsp.authservice.service.PasscodeService;
+import com.mariuszilinskas.vsp.authservice.service.PasswordService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +18,18 @@ public class RabbitMQConsumer {
 
     private static final Logger logger = LoggerFactory.getLogger(RabbitMQConsumer.class);
     private final PasscodeService passcodeService;
+    private final PasswordService passwordService;
     private final DataDeletionService dataDeletionService;
 
-    @RabbitListener(queues = "${rabbitmq.queues.create-passcode}")
+
+    @RabbitListener(queues = "${rabbitmq.queues.create-credentials}")
+    public void consumeCreateCredentialsMessage(CredentialsRequest request) {
+        logger.info("Received request to create credentials for User [userId: {}]", request.userId());
+        passwordService.createNewPassword(request);
+        passcodeService.createPasscode(request.userId(), request.firstName(), request.email());
+    }
+
+    @RabbitListener(queues = "${rabbitmq.queues.reset-passcode}")
     public void consumeResetPasscodeMessage(UUID userId) {
         logger.info("Received request to create passcode for User [userId: {}]", userId);
         passcodeService.resetPasscode(userId);

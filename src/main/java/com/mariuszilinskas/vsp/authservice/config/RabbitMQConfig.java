@@ -15,17 +15,17 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.exchange}")
     private String exchange;
 
-    @Value("${rabbitmq.queues.profile-setup}")
-    private String profileSetupQueue;
+    @Value("${rabbitmq.queues.create-credentials}")
+    private String createCredentialsQueue;
 
-    @Value("${rabbitmq.routing-keys.profile-setup}")
-    private String profileSetupRoutingKey;
+    @Value("${rabbitmq.routing-keys.create-credentials}")
+    private String createCredentialsRoutingKey;
 
     @Value("${rabbitmq.queues.reset-passcode}")
-    private String createPasscodeQueue;
+    private String resetPasscodeQueue;
 
     @Value("${rabbitmq.routing-keys.reset-passcode}")
-    private String createPasscodeRoutingKey;
+    private String resetPasscodeRoutingKey;
 
     @Value("${rabbitmq.queues.delete-user-data}")
     private String deleteUserDataQueue;
@@ -39,27 +39,27 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue profileSetupQueue() {
-        return new Queue(profileSetupQueue, true);
+    public Queue createCredentialsQueue() {
+        return new Queue(createCredentialsQueue, true);
     }
 
     @Bean
-    public Binding profileSetupBinding() {
-        return BindingBuilder.bind(profileSetupQueue())
+    public Binding createCredentialsBinding() {
+        return BindingBuilder.bind(createCredentialsQueue())
                 .to(exchange())
-                .with(profileSetupRoutingKey);
+                .with(createCredentialsRoutingKey);
     }
 
     @Bean
-    public Queue createPasscodeQueue() {
-        return new Queue(createPasscodeQueue, true);
+    public Queue resetPasscodeQueue() {
+        return new Queue(resetPasscodeQueue, true);
     }
 
     @Bean
-    public Binding createPasscodeBinding() {
-        return BindingBuilder.bind(createPasscodeQueue())
+    public Binding resetPasscodeBinding() {
+        return BindingBuilder.bind(resetPasscodeQueue())
                 .to(exchange())
-                .with(createPasscodeRoutingKey);
+                .with(resetPasscodeRoutingKey);
     }
 
     @Bean

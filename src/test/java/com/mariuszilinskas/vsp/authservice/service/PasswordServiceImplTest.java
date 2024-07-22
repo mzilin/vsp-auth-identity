@@ -77,7 +77,7 @@ public class PasswordServiceImplTest {
         // Arrange
         String newPassword = "Password1";
         ArgumentCaptor<Password> captor = ArgumentCaptor.forClass(Password.class);
-        CredentialsRequest request = new CredentialsRequest(userId, newPassword);
+        CredentialsRequest request = new CredentialsRequest(userId, "firstName", email, newPassword);
 
         when(passwordRepository.findByUserId(userId)).thenReturn(Optional.empty());
         when(passwordEncoder.encode(newPassword)).thenReturn(password.getPasswordHash());
@@ -302,6 +302,74 @@ public class PasswordServiceImplTest {
 
         // Assert
         verify(resetTokenService, times(1)).findResetToken(resetToken.getToken());
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(passwordRepository, never()).save(any(Password.class));
+    }
+
+    // ------------------------------------
+
+    @Test
+    void testUpdatePassword_Success() {
+        // Arrange
+        String currentPassword = "Password1";
+        String newPassword = "Password1!";
+        String newPasswordHash = "HashedPassword";
+        password.setPasswordHash(newPasswordHash);
+
+        ArgumentCaptor<Password> captor = ArgumentCaptor.forClass(Password.class);
+        var request = new UpdatePasswordRequest(currentPassword, newPassword);
+
+        when(passwordRepository.findByUserId(userId)).thenReturn(Optional.of(password));
+        when(passwordEncoder.matches(request.currentPassword(), password.getPasswordHash())).thenReturn(true);
+        when(passwordEncoder.encode(newPassword)).thenReturn(newPasswordHash);
+        when(passwordRepository.save(captor.capture())).thenReturn(password);
+
+        // Act
+        passwordService.updatePassword(userId, request);
+
+        // Assert
+        verify(passwordRepository, times(1)).findByUserId(userId);
+        verify(passwordEncoder, times(1)).matches(request.currentPassword(), password.getPasswordHash());
+        verify(passwordEncoder, times(1)).encode(newPassword);
+        verify(passwordRepository, times(1)).save(captor.capture());
+
+        Password savedPassword = captor.getValue();
+        assertEquals(newPasswordHash, savedPassword.getPasswordHash());
+    }
+
+    @Test
+    void testUpdatePassword_IncorrectPassword() {
+        // Arrange
+        String newPasswordHash = "HashedPassword";
+        password.setPasswordHash(newPasswordHash);
+
+        var request = new UpdatePasswordRequest("IncorrectPassword1", "Password1!");
+
+        when(passwordRepository.findByUserId(userId)).thenReturn(Optional.of(password));
+        when(passwordEncoder.matches(request.currentPassword(), password.getPasswordHash())).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(CredentialsValidationException.class, () -> passwordService.updatePassword(userId, request));
+
+        // Assert
+        verify(passwordRepository, times(1)).findByUserId(userId);
+        verify(passwordEncoder, times(1)).matches(request.currentPassword(), password.getPasswordHash());
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(passwordRepository, never()).save(any(Password.class));
+    }
+
+    @Test
+    void testUpdatePassword_PasswordNotFound() {
+        // Arrange
+        var request = new UpdatePasswordRequest("CurrentPassword1", "NewPassword1!");
+        when(passwordRepository.findByUserId(userId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> passwordService.updatePassword(userId, request));
+
+        // Assert
+        verify(passwordRepository, times(1)).findByUserId(userId);
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
         verify(passwordEncoder, never()).encode(anyString());
         verify(passwordRepository, never()).save(any(Password.class));
     }

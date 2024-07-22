@@ -44,11 +44,12 @@ public class PasscodeServiceImpl implements PasscodeService {
         if (!isPasscodeCorrect(passcode, request.passcode()))
             throw new PasscodeValidationException();
 
-        UserResponse response = getUserInfo(userId);
-        verifyUserEmail(userId);
-        deleteUserPasscodes(userId);
+        UserResponse user = getUserInfo(userId);
 
-        var emailRequest = new WelcomeEmailRequest("welcome", response.firstName(), response.email());
+        rabbitMQProducer.sendVerifyAccountMessage(userId);
+        var emailRequest = new WelcomeEmailRequest("welcome", user.firstName(), user.email());
+
+        deleteUserPasscodes(userId);
         rabbitMQProducer.sendWelcomeEmailMessage(emailRequest);
     }
 
@@ -60,14 +61,15 @@ public class PasscodeServiceImpl implements PasscodeService {
         return passcode.getPasscode().equals(givenPasscode);
     }
 
-    private void verifyUserEmail(UUID userId) {
-        try {
-            userFeignClient.verifyUserEmail(userId);
-        } catch (FeignException ex) {
-            logger.error("Feign Exception when verifying User email: User ID '{}', Status {}, Body {}",
-                    userId, ex.status(), ex.contentUTF8());
-            throw new EmailVerificationException();
-        }
+    @Override
+    @Transactional
+    public void createPasscode(UUID userId, String firstName, String email) {
+        logger.info("Creating Passcode for User [userId: '{}']", userId);
+
+        String passcode = createNewPasscode(userId);
+
+        var emailRequest = new VerificationEmailRequest("verify", firstName, email, passcode);
+        rabbitMQProducer.sendVerificationEmailMessage(emailRequest);
     }
 
     @Override
@@ -76,13 +78,13 @@ public class PasscodeServiceImpl implements PasscodeService {
         logger.info("Resetting Passcode for User [userId: '{}']", userId);
 
         UserResponse response = getUserInfo(userId);
-        String passcode = createPasscode(userId);
+        String passcode = createNewPasscode(userId);
 
         var emailRequest = new VerificationEmailRequest("verify", response.firstName(), response.email(), passcode);
         rabbitMQProducer.sendVerificationEmailMessage(emailRequest);
     }
 
-    private String createPasscode(UUID userId) {
+    private String createNewPasscode(UUID userId) {
         Passcode passcode = findOrCreatePasscode(userId);
         passcode.setPasscode(tokenGenerationService.generatePasscode());
         passcode.setExpiryDate(Instant.now().plusMillis(AuthUtils.FIFTEEN_MINUTES_IN_MILLIS));
