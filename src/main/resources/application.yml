@@ -1,18 +1,18 @@
 # Server properties
 server:
-  port: 8091
+  port: 8100
 
 # Information for the info endpoint
 info:
   app:
     environment: DEV
-    name: Auth Service
-    description: Auth Service Local Instance
+    name: identity-service
+    description: Identity Service - Local Instance
 
 # Spring application properties
 spring:
   application:
-    name: auth
+    name: identity-service
   profiles:
     active: dev
   config:
