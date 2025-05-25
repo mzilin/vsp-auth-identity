@@ -6,18 +6,18 @@ server:
 info:
   app:
     environment: DEV
-    name: identity-service
+    name: ${spring.application.name}
     description: Identity Service - Local Instance
 
 # Spring application properties
 spring:
   application:
-    name: identity-service
+    name: auth-identity
   profiles:
     active: dev
   config:
     import:
-      - optional:configserver:${CONFIG_SERVER_URL}
+      - optional:configserver:discovery://config-server
       - optional:file:./env.properties
   datasource:
     url: ${DB_URI}
@@ -78,3 +78,4 @@ logging:
     root: INFO
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
+    com.mariuszilinskas.vsp: DEBUG
