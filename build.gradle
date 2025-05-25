@@ -43,6 +43,8 @@ dependencies {
     // Database-related
     implementation 'org.flywaydb:flyway-core:9.22.3'
     runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.h2database:h2'
+    testImplementation 'com.h2database:h2'
 
     // Security
     implementation 'org.springframework.security:spring-security-crypto:6.1.0'
