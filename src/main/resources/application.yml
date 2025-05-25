@@ -6,7 +6,7 @@ server:
 info:
   app:
     environment: DEV
-    name: auth-identity
+    name: ${spring.application.name}
     description: Identity Service - Local Instance
 
 # Spring application properties
