@@ -6,13 +6,13 @@ server:
 info:
   app:
     environment: DEV
-    name: identity-service
+    name: auth-identity
     description: Identity Service - Local Instance
 
 # Spring application properties
 spring:
   application:
-    name: identity-service
+    name: auth-identity
   profiles:
     active: dev
   config:
