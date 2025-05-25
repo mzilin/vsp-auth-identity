@@ -2,7 +2,7 @@ name: Codecov
 
 on:
   push:
-    branches: [ main, prod ]
+    branches: [ main ]
 
 jobs:
   upload-coverage:
@@ -11,14 +11,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java with Gradle cache
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
 
       - name: Generate coverage
-        run: ./gradlew test jacocoTestReport
+        run: SPRING_PROFILES_ACTIVE=ci ./gradlew test jacocoTestReport --no-daemon
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
